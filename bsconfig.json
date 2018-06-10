@@ -1,0 +1,28 @@
+{
+  "name": "reason-form",
+  "namespace": true,
+  "reason": {
+    "react-jsx": 2
+  },
+  "refmt": 3,
+  "suffix": ".bs.js",
+  "bs-dependencies": [
+    "bs-jest",
+    "reason-react"
+  ],
+  "bsc-flags": [
+    "-bs-no-version-header",
+    "-bs-super-errors",
+    "-bs-g"
+  ],
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": []
+    },
+    {
+      "dir": "src/__tests__",
+      "subdirs": []
+    }
+  ]
+}

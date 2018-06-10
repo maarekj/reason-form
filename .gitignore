@@ -1,0 +1,7 @@
+.merlin
+.bsb.lock
+yarn-error.log
+.vscode
+/node_modules
+/build/
+/lib/
