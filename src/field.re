@@ -20,7 +20,7 @@ let createField =
 };
 
 let mapField = (~field, ~key: string=field.key, ~getValue, ~setValue, ()) => {
-  key: field.key,
+  key,
   getValue,
   setValue,
   bind: Bind.bind(~key=field.key, ~getValue, ~setValue),
