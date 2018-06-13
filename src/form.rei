@@ -7,7 +7,8 @@ type form('a);
 let initializeForm:
   (
     ~initialValues: 'a,
-    ~globalErrors: list(string)=?,
+    ~rootErrors: list(string)=?,
+    ~submitErrors: list(string)=?,
     ~onBlur: (string, form('a)) => form('a)=?,
     ~onFocus: (string, form('a)) => form('a)=?,
     ~onChangeValue: form('a) => form('a)=?,
@@ -26,7 +27,9 @@ let blur: (string, form('a)) => form('a);
 
 let changeValues: (list(string), 'a, form('a)) => form('a);
 
-let addGlobalError: (string, form('a)) => form('a);
+let addRootError: (string, form('a)) => form('a);
+
+let addSubmitError: (string, form('a)) => form('a);
 
 let addError: (string, string, form('a)) => form('a);
 
@@ -48,9 +51,13 @@ let getInitialValues: form('a) => 'a;
 
 let formIsDirty: form('a) => bool;
 
-let formHasGlobalError: form('a) => bool;
+let formHasRootError: form('a) => bool;
 
-let getGlobalErrors: form('a) => list(string);
+let getRootErrors: form('a) => list(string);
+
+let formHasSubmitError: form('a) => bool;
+
+let getSubmitErrors: form('a) => list(string);
 
 let formHasError: form('a) => bool;
 

@@ -12,7 +12,8 @@ let emptyField = {focus: false, dirty: false, errors: []};
 
 type form('a) = {
   fields: metaFields,
-  globalErrors: list(string),
+  rootErrors: list(string),
+  submitErrors: list(string),
   onValidate: form('a) => form('a),
   onBlur: (string, form('a)) => form('a),
   onFocus: (string, form('a)) => form('a),
@@ -26,7 +27,8 @@ type form('a) = {
 let initializeForm =
     (
       ~initialValues,
-      ~globalErrors=[],
+      ~rootErrors=[],
+      ~submitErrors=[],
       ~onBlur=(_key, form) => form,
       ~onFocus=(_key, form) => form,
       ~onChangeValue=form => form,
@@ -35,7 +37,8 @@ let initializeForm =
     ) => {
   let form = {
     fields: SMap.empty,
-    globalErrors,
+    rootErrors,
+    submitErrors,
     onValidate,
     onBlur,
     onFocus,
@@ -70,9 +73,14 @@ let blur = (key, form) =>
   mapField(form, field => {...field, focus: false, dirty: true}, key)
   |> form.onBlur(key);
 
-let addGlobalError = (error, form) => {
+let addRootError = (error, form) => {
   ...form,
-  globalErrors: [error, ...form.globalErrors],
+  rootErrors: [error, ...form.rootErrors],
+};
+
+let addSubmitError = (error, form) => {
+  ...form,
+  submitErrors: [error, ...form.submitErrors],
 };
 
 let addError = (key, error, form) =>
@@ -84,6 +92,8 @@ let addError = (key, error, form) =>
 
 let clearErrors = (key, form) =>
   mapField(form, field => {...field, errors: []}, key);
+
+let clearRootErrors = form => {...form, rootErrors: []};
 
 let clearAllFieldsErrors = form =>
   mapFields(
@@ -113,6 +123,7 @@ let changeValues = (keys, values, form) => {
     keys,
   )
   |> form.onChangeValue
+  |> clearRootErrors
   |> clearAllFieldsErrors
   |> form.onValidate;
 };
@@ -134,12 +145,16 @@ let getInitialValues = form => form.initialValues;
 let formIsDirty = form =>
   SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.dirty);
 
-let formHasGlobalError = form => List.length(form.globalErrors) > 0;
+let formHasRootError = form => List.length(form.rootErrors) > 0;
 
-let getGlobalErrors = form => form.globalErrors;
+let getRootErrors = form => form.rootErrors;
+
+let formHasSubmitError = form => List.length(form.submitErrors) > 0;
+
+let getSubmitErrors = form => form.submitErrors;
 
 let formHasError = form =>
-  formHasGlobalError(form)
+  formHasRootError(form)
   || SMap.reduce(form.fields, false, (acc, _key, field) =>
        acc || List.length(field.errors) > 0
      );
