@@ -54,4 +54,12 @@ let getGlobalErrors: form('a) => list(string);
 
 let formHasError: form('a) => bool;
 
+let startSubmit: form('a) => form('a);
+
+let stopSubmit: form('a) => form('a);
+
+let isSubmitting: form('a) => bool;
+
+let getNbSubmits: form('a) => int;
+
 let fieldsToJSON: form('a) => Js.t({..});
