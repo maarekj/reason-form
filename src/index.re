@@ -502,7 +502,7 @@ module UserForm = {
         <div>
           (
             ReasonReact.string(
-              Form.formHasError(form) ? "is invalid" : "is valid",
+              Form.formHasErrors(form) ? "is invalid" : "is valid",
             )
           )
         </div>

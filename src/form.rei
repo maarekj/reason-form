@@ -35,6 +35,10 @@ let addError: (string, string, form('a)) => form('a);
 
 let clearErrors: (string, form('a)) => form('a);
 
+let clearRootErrors: form('a) => form('a);
+
+let clearSubmitErrors: form('a) => form('a);
+
 let hasFocus: (string, form('a)) => bool;
 
 let isBlur: (string, form('a)) => bool;
@@ -51,15 +55,15 @@ let getInitialValues: form('a) => 'a;
 
 let formIsDirty: form('a) => bool;
 
-let formHasRootError: form('a) => bool;
+let formHasRootErrors: form('a) => bool;
 
 let getRootErrors: form('a) => list(string);
 
-let formHasSubmitError: form('a) => bool;
+let formHasSubmitErrors: form('a) => bool;
 
 let getSubmitErrors: form('a) => list(string);
 
-let formHasError: form('a) => bool;
+let formHasErrors: form('a) => bool;
 
 let startSubmit: form('a) => form('a);
 

@@ -95,6 +95,8 @@ let clearErrors = (key, form) =>
 
 let clearRootErrors = form => {...form, rootErrors: []};
 
+let clearSubmitErrors = form => {...form, submitErrors: []};
+
 let clearAllFieldsErrors = form =>
   mapFields(
     form,
@@ -145,16 +147,16 @@ let getInitialValues = form => form.initialValues;
 let formIsDirty = form =>
   SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.dirty);
 
-let formHasRootError = form => List.length(form.rootErrors) > 0;
+let formHasRootErrors = form => List.length(form.rootErrors) > 0;
 
 let getRootErrors = form => form.rootErrors;
 
-let formHasSubmitError = form => List.length(form.submitErrors) > 0;
+let formHasSubmitErrors = form => List.length(form.submitErrors) > 0;
 
 let getSubmitErrors = form => form.submitErrors;
 
-let formHasError = form =>
-  formHasRootError(form)
+let formHasErrors = form =>
+  formHasRootErrors(form)
   || SMap.reduce(form.fields, false, (acc, _key, field) =>
        acc || List.length(field.errors) > 0
      );
