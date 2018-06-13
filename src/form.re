@@ -17,6 +17,8 @@ type form('a) = {
   onBlur: (string, form('a)) => form('a),
   onFocus: (string, form('a)) => form('a),
   onChangeValue: form('a) => form('a),
+  submitting: bool,
+  nbSubmits: int,
   initialValues: 'a,
   values: 'a,
 };
@@ -39,6 +41,8 @@ let initializeForm =
     onFocus,
     onChangeValue,
     initialValues,
+    submitting: false,
+    nbSubmits: 0,
     values: initialValues,
   };
   form |> onValidate;
@@ -139,6 +143,18 @@ let formHasError = form =>
   || SMap.reduce(form.fields, false, (acc, _key, field) =>
        acc || List.length(field.errors) > 0
      );
+
+let startSubmit = form => {
+  ...form,
+  submitting: true,
+  nbSubmits: form.nbSubmits + 1,
+};
+
+let stopSubmit = form => {...form, submitting: false};
+
+let isSubmitting = form => form.submitting;
+
+let getNbSubmits = form => form.nbSubmits;
 
 let fieldsToJSON = form =>
   Obj.magic({
