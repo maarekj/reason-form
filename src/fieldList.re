@@ -25,7 +25,7 @@ let insert = (list, index, elt) => {
   };
 };
 
-type wrapper('item, 'value, 'fields) = {wrapField: 'a .Field.t('item, 'a) => Field.t('value, 'a)};
+type wrapper('item, 'value, 'fields) = {wrapField: 'a. Field.t('item, 'a) => Field.t('value, 'a)};
 
 let createField =
     (

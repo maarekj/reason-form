@@ -13,7 +13,7 @@ type t('values, 'value) = {
   getValue: Form.form('values) => 'value,
 };
 
-let bind = (~key, ~getValue, ~setValue) : t('values, 'value) => {
+let bind = (~key, ~getValue, ~setValue): t('values, 'value) => {
   key,
   focus: form => Form.focus(key, form),
   blur: form => Form.blur(key, form),

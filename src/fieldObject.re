@@ -6,7 +6,7 @@ type t('values, 'obj, 'fields) = {
   bind: Bind.t('values, 'obj),
 };
 
-type wrapper('obj, 'values, 'fields) = {wrapField: 'a .Field.t('obj, 'a) => Field.t('values, 'a)};
+type wrapper('obj, 'values, 'fields) = {wrapField: 'a. Field.t('obj, 'a) => Field.t('values, 'a)};
 
 let createField =
     (~key: string, ~getObject: 'values => 'obj, ~setObject: ('obj, 'values) => 'values, ~createFields)

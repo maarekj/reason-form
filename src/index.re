@@ -192,8 +192,8 @@ module UserForm = {
 
   let displayErrors = (form: User.form, field: Bind.t(User.t, 'b)) =>
     field.isDirty(form) ?
-      <div key=(field.key ++ "-" ++ "errors")>
-        (form |> field.getErrors |> Belt.List.map(_, ReasonReact.string) |> Belt.List.toArray |> ReasonReact.array)
+      <div key={field.key ++ "-" ++ "errors"}>
+        {form |> field.getErrors |> Belt.List.map(_, ReasonReact.string) |> Belt.List.toArray |> ReasonReact.array}
       </div> :
       ReasonReact.null;
 
@@ -211,58 +211,58 @@ module UserForm = {
       let dispatch = action => send(HandleAction(action));
       <div>
         <div>
-          <label> (ReasonReact.string("Nom")) </label>
+          <label> {ReasonReact.string("Nom")} </label>
           <input
             type_="text"
-            value=(values.lastname |> Belt.Option.getWithDefault(_, ""))
-            onFocus=(_event => dispatch(User.lastname.bind.focus))
-            onBlur=(_event => dispatch(User.lastname.bind.blur))
-            onChange=(Helper.handleDomFormChange(dispatch, User.lastname, value => Some(value)))
+            value={values.lastname |> Belt.Option.getWithDefault(_, "")}
+            onFocus={_event => dispatch(User.lastname.bind.focus)}
+            onBlur={_event => dispatch(User.lastname.bind.blur)}
+            onChange={Helper.handleDomFormChange(dispatch, User.lastname, value => Some(value))}
           />
-          (displayErrors(form, User.lastname.bind))
+          {displayErrors(form, User.lastname.bind)}
         </div>
         <div>
-          <label> (ReasonReact.string({j|Prénom|j})) </label>
+          <label> {ReasonReact.string({j|Prénom|j})} </label>
           <input
             type_="text"
-            value=(values.firstname |> Belt.Option.getWithDefault(_, ""))
-            onFocus=(_event => dispatch(User.firstname.bind.focus))
-            onBlur=(_event => dispatch(User.firstname.bind.blur))
-            onChange=(Helper.handleDomFormChange(dispatch, User.firstname, value => Some(value)))
+            value={values.firstname |> Belt.Option.getWithDefault(_, "")}
+            onFocus={_event => dispatch(User.firstname.bind.focus)}
+            onBlur={_event => dispatch(User.firstname.bind.blur)}
+            onChange={Helper.handleDomFormChange(dispatch, User.firstname, value => Some(value))}
           />
-          (displayErrors(form, User.firstname.bind))
+          {displayErrors(form, User.firstname.bind)}
         </div>
         <div>
-          <label> (ReasonReact.string({j|Username|j})) </label>
+          <label> {ReasonReact.string({j|Username|j})} </label>
           <input
             type_="text"
-            value=(values.username |> Belt.Option.getWithDefault(_, ""))
-            onFocus=(_event => dispatch(User.username.bind.focus))
-            onBlur=(_event => dispatch(User.username.bind.blur))
-            onChange=(Helper.handleDomFormChange(dispatch, User.username, value => Some(value)))
+            value={values.username |> Belt.Option.getWithDefault(_, "")}
+            onFocus={_event => dispatch(User.username.bind.focus)}
+            onBlur={_event => dispatch(User.username.bind.blur)}
+            onChange={Helper.handleDomFormChange(dispatch, User.username, value => Some(value))}
           />
-          (displayErrors(form, User.username.bind))
+          {displayErrors(form, User.username.bind)}
         </div>
         <div>
-          <label> (ReasonReact.string({j|Age|j})) </label>
+          <label> {ReasonReact.string({j|Age|j})} </label>
           <input
             type_="text"
-            value=(values.age |> string_of_int)
-            onFocus=(_event => dispatch(User.age.bind.focus))
-            onBlur=(_event => dispatch(User.age.bind.blur))
-            onChange=(
+            value={values.age |> string_of_int}
+            onFocus={_event => dispatch(User.age.bind.focus)}
+            onBlur={_event => dispatch(User.age.bind.blur)}
+            onChange={
               Helper.handleDomFormChange(dispatch, User.age, value =>
                 try (int_of_string(value)) {
                 | Failure("int_of_string") => 0
                 }
               )
-            )
+            }
           />
-          (displayErrors(form, User.age.bind))
+          {displayErrors(form, User.age.bind)}
         </div>
         <div>
           <ul>
-            (
+            {
               values.tags
               |> Belt.List.mapWithIndex(_, (i, tag) =>
                    <li key={j|$i|j}>
@@ -270,103 +270,101 @@ module UserForm = {
                        <input
                          type_="text"
                          value=tag
-                         onFocus=(_event => dispatch(User.tags.getRow(i).bind.focus))
-                         onBlur=(_event => dispatch(User.tags.getRow(i).bind.blur))
-                         onChange=(Helper.handleDomFormChange(dispatch, User.tags.getRow(i), value => value))
+                         onFocus={_event => dispatch(User.tags.getRow(i).bind.focus)}
+                         onBlur={_event => dispatch(User.tags.getRow(i).bind.blur)}
+                         onChange={Helper.handleDomFormChange(dispatch, User.tags.getRow(i), value => value)}
                        />
-                       (displayErrors(form, User.tags.getRow(i).bind))
+                       {displayErrors(form, User.tags.getRow(i).bind)}
                      </div>
                    </li>
                  )
               |> Belt.List.toArray
               |> ReasonReact.array
-            )
+            }
           </ul>
           <button
-            onClick=(
+            onClick={
               event => {
-                ReactEventRe.Synthetic.preventDefault(event);
+                ReactEvent.Synthetic.preventDefault(event);
                 dispatch(FieldList.changeValues(User.tags, User.tags.push("", values)));
               }
-            )>
-            (ReasonReact.string("Add +"))
+            }>
+            {ReasonReact.string("Add +")}
           </button>
         </div>
         <div>
-          <label> (ReasonReact.string({j|Main address|j})) </label>
+          <label> {ReasonReact.string({j|Main address|j})} </label>
           <div>
             <input
               type_="text"
-              value=(
-                values.mainAddress |. Belt.Option.map(address => address.street) |. Belt.Option.getWithDefault("")
-              )
-              onFocus=(_event => dispatch(User.mainAddress.fields.street.bind.focus))
-              onBlur=(_event => dispatch(User.mainAddress.fields.street.bind.blur))
-              onChange=(Helper.handleDomFormChange(dispatch, User.mainAddress.fields.street, value => value))
+              value=values.mainAddress->(Belt.Option.map(address => address.street))->(Belt.Option.getWithDefault(""))
+              onFocus={_event => dispatch(User.mainAddress.fields.street.bind.focus)}
+              onBlur={_event => dispatch(User.mainAddress.fields.street.bind.blur)}
+              onChange={Helper.handleDomFormChange(dispatch, User.mainAddress.fields.street, value => value)}
             />
-            (displayErrors(form, User.mainAddress.fields.street.bind))
+            {displayErrors(form, User.mainAddress.fields.street.bind)}
           </div>
           <div>
             <input
               type_="text"
-              value=(values.mainAddress |. Belt.Option.map(address => address.city) |. Belt.Option.getWithDefault(""))
-              onFocus=(_event => dispatch(User.mainAddress.fields.city.bind.focus))
-              onBlur=(_event => dispatch(User.mainAddress.fields.city.bind.blur))
-              onChange=(Helper.handleDomFormChange(dispatch, User.mainAddress.fields.city, value => value))
+              value=values.mainAddress->(Belt.Option.map(address => address.city))->(Belt.Option.getWithDefault(""))
+              onFocus={_event => dispatch(User.mainAddress.fields.city.bind.focus)}
+              onBlur={_event => dispatch(User.mainAddress.fields.city.bind.blur)}
+              onChange={Helper.handleDomFormChange(dispatch, User.mainAddress.fields.city, value => value)}
             />
-            (displayErrors(form, User.mainAddress.fields.city.bind))
+            {displayErrors(form, User.mainAddress.fields.city.bind)}
           </div>
         </div>
         <div>
           <ul>
-            (
+            {
               values.addresses
               |> Belt.List.mapWithIndex(_, (i, address) =>
                    <li key={j|$i|j}>
                      <div>
                        <input
                          type_="text"
-                         value=address.street
-                         onFocus=(_event => dispatch(User.addresses.getRow(i).street.bind.focus))
-                         onBlur=(_event => dispatch(User.addresses.getRow(i).street.bind.blur))
-                         onChange=(
+                         value={address.street}
+                         onFocus={_event => dispatch(User.addresses.getRow(i).street.bind.focus)}
+                         onBlur={_event => dispatch(User.addresses.getRow(i).street.bind.blur)}
+                         onChange={
                            Helper.handleDomFormChange(dispatch, User.addresses.getRow(i).street, value => value)
-                         )
+                         }
                        />
-                       (displayErrors(form, User.addresses.getRow(i).street.bind))
+                       {displayErrors(form, User.addresses.getRow(i).street.bind)}
                      </div>
                      <div>
                        <input
                          type_="text"
-                         value=address.city
-                         onFocus=(_event => dispatch(User.addresses.getRow(i).city.bind.focus))
-                         onBlur=(_event => dispatch(User.addresses.getRow(i).city.bind.blur))
-                         onChange=(
+                         value={address.city}
+                         onFocus={_event => dispatch(User.addresses.getRow(i).city.bind.focus)}
+                         onBlur={_event => dispatch(User.addresses.getRow(i).city.bind.blur)}
+                         onChange={
                            Helper.handleDomFormChange(dispatch, User.addresses.getRow(i).city, value => value)
-                         )
+                         }
                        />
-                       (displayErrors(form, User.addresses.getRow(i).city.bind))
+                       {displayErrors(form, User.addresses.getRow(i).city.bind)}
                      </div>
                    </li>
                  )
               |> Belt.List.toArray
               |> ReasonReact.array
-            )
+            }
           </ul>
-          (displayErrors(form, User.addresses.bind))
+          {displayErrors(form, User.addresses.bind)}
           <button
-            onClick=(
+            onClick={
               event => {
-                ReactEventRe.Synthetic.preventDefault(event);
+                ReactEvent.Synthetic.preventDefault(event);
                 dispatch(
                   FieldList.changeValues(User.addresses, User.addresses.push({street: "", city: ""}, values)),
                 );
               }
-            )>
-            (ReasonReact.string("Add +"))
+            }>
+            {ReasonReact.string("Add +")}
           </button>
         </div>
-        <div> (ReasonReact.string(Form.formHasErrors(form) ? "is invalid" : "is valid")) </div>
+        <div> {ReasonReact.string(Form.formHasErrors(form) ? "is invalid" : "is valid")} </div>
       </div>;
     },
   };

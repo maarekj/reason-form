@@ -109,7 +109,7 @@ let changeValues = (keys, values, form) => {
 
 let hasFocus = (key, form) => getField(key, form).focus;
 
-let isBlur = (key, form) => ! getField(key, form).focus;
+let isBlur = (key, form) => !getField(key, form).focus;
 
 let isDirty = (key, form) => getField(key, form).dirty;
 
