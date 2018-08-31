@@ -32,18 +32,14 @@ let createField =
       ~key: string,
       ~getList: 'value => list('item),
       ~setList: (list('item), 'value) => 'value,
-      ~createFields:
-         (Field.t('item, 'string) => Field.t('value, 'string)) => 'row,
+      ~createFields: (Field.t('item, 'string) => Field.t('value, 'string)) => 'row,
     )
     : t('value, 'item, 'row) => {
   key,
   count: values => values |> getList |> Belt.List.size,
-  add: (value, values) =>
-    values |> getList |> Belt.List.add(_, value) |> setList(_, values),
-  push: (value, values) =>
-    values |> getList |> Belt.List.concat(_, [value]) |> setList(_, values),
-  insert: (index, value, values) =>
-    values |> getList |> insert(_, index, value) |> setList(_, values),
+  add: (value, values) => values |> getList |> Belt.List.add(_, value) |> setList(_, values),
+  push: (value, values) => values |> getList |> Belt.List.concat(_, [value]) |> setList(_, values),
+  insert: (index, value, values) => values |> getList |> insert(_, index, value) |> setList(_, values),
   getList,
   setList,
   bind: Bind.bind(~key, ~getValue=getList, ~setValue=setList),
@@ -55,13 +51,10 @@ let createField =
         ~getValue=user => Belt.List.getExn(getList(user), index),
         ~setValue=
           (row, value) =>
-            getList(value)
-            |> Belt.List.mapWithIndex(_, (i, e) => i == index ? row : e)
-            |> setList(_, value),
+            getList(value) |> Belt.List.mapWithIndex(_, (i, e) => i == index ? row : e) |> setList(_, value),
         (),
       )
     ),
 };
 
-let changeValues = (field, newValues, form) =>
-  Form.changeValues([field.key], newValues, form);
+let changeValues = (field, newValues, form) => Form.changeValues([field.key], newValues, form);

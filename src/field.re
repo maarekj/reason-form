@@ -7,11 +7,7 @@ type t('values, 'value) = {
 type field('values, 'value) = t('values, 'value);
 
 let createField =
-    (
-      ~key: string,
-      ~getValue: 'values => 'value,
-      ~setValue: ('value, 'values) => 'values,
-    )
+    (~key: string, ~getValue: 'values => 'value, ~setValue: ('value, 'values) => 'values)
     : t('values, 'value) => {
   key,
   setValue,
@@ -53,12 +49,7 @@ let wrapField =
   );
 
 let wrapOptionField =
-    (
-      ~field: t('address, 'string),
-      ~empty: 'address,
-      ~key: string=field.key,
-      (),
-    )
+    (~field: t('address, 'string), ~empty: 'address, ~key: string=field.key, ())
     : t(option('address), 'string) =>
   mapField(
     ~field,

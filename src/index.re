@@ -71,13 +71,7 @@ module User = {
       ~setList=(value, values) => {...values, tags: value},
       ~createFields=
         wrapField =>
-          wrapField(
-            Field.createField(
-              ~key="root",
-              ~getValue=values => values,
-              ~setValue=(value, _) => value,
-            ),
-          ),
+          wrapField(Field.createField(~key="root", ~getValue=values => values, ~setValue=(value, _) => value)),
     );
   type address = {
     street: Field.t(t, string),
@@ -87,16 +81,8 @@ module User = {
     FieldList.createField(
       ~key="addresses",
       ~getList=(values: t) => values.addresses,
-      ~setList=
-        (value: list(Address.t), values: t) => {
-          ...values,
-          addresses: value,
-        },
-      ~createFields=
-        wrapField => {
-          street: wrapField(Address.street),
-          city: wrapField(Address.city),
-        },
+      ~setList=(value: list(Address.t), values: t) => {...values, addresses: value},
+      ~createFields=wrapField => {street: wrapField(Address.street), city: wrapField(Address.city)},
     );
 
   let mainAddress =
@@ -106,22 +92,8 @@ module User = {
       ~setObject=(value, values) => {...values, mainAddress: value},
       ~createFields=
         wrapField => {
-          street:
-            wrapField(
-              Field.wrapOptionField(
-                ~field=Address.street,
-                ~empty=Address.empty,
-                (),
-              ),
-            ),
-          city:
-            wrapField(
-              Field.wrapOptionField(
-                ~field=Address.city,
-                ~empty=Address.empty,
-                (),
-              ),
-            ),
+          street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
+          city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
         },
     );
 
@@ -149,8 +121,7 @@ module User = {
         switch (values.username) {
         | None
         | Some("") => username.bind.addError("Username is required.")
-        | Some("maarek") =>
-          username.bind.addError("Username is already used.")
+        | Some("maarek") => username.bind.addError("Username is already used.")
         | _ => id
         }
       )
@@ -163,8 +134,7 @@ module User = {
 
     let form =
       Belt.List.size(values.addresses) < 2 ?
-        addresses.bind.addError("Must contains one address at least.", form) :
-        form;
+        addresses.bind.addError("Must contains one address at least.", form) : form;
 
     let validateAddress = (address: Address.t, field: address, form) =>
       form
@@ -194,9 +164,7 @@ module User = {
 
     let form =
       Belt.List.mapWithIndex(values.addresses, (i, a) => (i, a))
-      |> Belt.List.reduce(_, form, (form, (i, address)) =>
-           form |> validateAddress(address, addresses.getRow(i))
-         );
+      |> Belt.List.reduce(_, form, (form, (i, address)) => form |> validateAddress(address, addresses.getRow(i)));
 
     let form =
       Belt.List.mapWithIndex(values.tags, (i, a) => (i, a))
@@ -212,8 +180,7 @@ module User = {
          );
     form;
   };
-  let initializeForm = () =>
-    Form.initializeForm(~initialValues=initialUser, ~onValidate, ());
+  let initializeForm = () => Form.initializeForm(~initialValues=initialUser, ~onValidate, ());
 };
 
 module UserForm = {
@@ -226,24 +193,13 @@ module UserForm = {
   let displayErrors = (form: User.form, field: Bind.t(User.t, 'b)) =>
     field.isDirty(form) ?
       <div key=(field.key ++ "-" ++ "errors")>
-        (
-          form
-          |> field.getErrors
-          |> Belt.List.map(_, ReasonReact.string)
-          |> Belt.List.toArray
-          |> ReasonReact.array
-        )
+        (form |> field.getErrors |> Belt.List.map(_, ReasonReact.string) |> Belt.List.toArray |> ReasonReact.array)
       </div> :
       ReasonReact.null;
 
   let make = _children => {
     ...component,
-    initialState: () =>
-      Form.initializeForm(
-        ~initialValues=User.initialUser,
-        ~onValidate=User.onValidate,
-        (),
-      ),
+    initialState: () => Form.initializeForm(~initialValues=User.initialUser, ~onValidate=User.onValidate, ()),
     reducer: (action: action, state) =>
       switch (action) {
       | HandleAction(action) => ReasonReact.Update(action(state))
@@ -261,11 +217,7 @@ module UserForm = {
             value=(values.lastname |> Belt.Option.getWithDefault(_, ""))
             onFocus=(_event => dispatch(User.lastname.bind.focus))
             onBlur=(_event => dispatch(User.lastname.bind.blur))
-            onChange=(
-              Helper.handleDomFormChange(dispatch, User.lastname, value =>
-                Some(value)
-              )
-            )
+            onChange=(Helper.handleDomFormChange(dispatch, User.lastname, value => Some(value)))
           />
           (displayErrors(form, User.lastname.bind))
         </div>
@@ -276,11 +228,7 @@ module UserForm = {
             value=(values.firstname |> Belt.Option.getWithDefault(_, ""))
             onFocus=(_event => dispatch(User.firstname.bind.focus))
             onBlur=(_event => dispatch(User.firstname.bind.blur))
-            onChange=(
-              Helper.handleDomFormChange(dispatch, User.firstname, value =>
-                Some(value)
-              )
-            )
+            onChange=(Helper.handleDomFormChange(dispatch, User.firstname, value => Some(value)))
           />
           (displayErrors(form, User.firstname.bind))
         </div>
@@ -291,11 +239,7 @@ module UserForm = {
             value=(values.username |> Belt.Option.getWithDefault(_, ""))
             onFocus=(_event => dispatch(User.username.bind.focus))
             onBlur=(_event => dispatch(User.username.bind.blur))
-            onChange=(
-              Helper.handleDomFormChange(dispatch, User.username, value =>
-                Some(value)
-              )
-            )
+            onChange=(Helper.handleDomFormChange(dispatch, User.username, value => Some(value)))
           />
           (displayErrors(form, User.username.bind))
         </div>
@@ -326,18 +270,9 @@ module UserForm = {
                        <input
                          type_="text"
                          value=tag
-                         onFocus=(
-                           _event => dispatch(User.tags.getRow(i).bind.focus)
-                         )
-                         onBlur=(
-                           _event => dispatch(User.tags.getRow(i).bind.blur)
-                         )
-                         onChange=(
-                           Helper.handleDomFormChange(
-                             dispatch, User.tags.getRow(i), value =>
-                             value
-                           )
-                         )
+                         onFocus=(_event => dispatch(User.tags.getRow(i).bind.focus))
+                         onBlur=(_event => dispatch(User.tags.getRow(i).bind.blur))
+                         onChange=(Helper.handleDomFormChange(dispatch, User.tags.getRow(i), value => value))
                        />
                        (displayErrors(form, User.tags.getRow(i).bind))
                      </div>
@@ -351,12 +286,7 @@ module UserForm = {
             onClick=(
               event => {
                 ReactEventRe.Synthetic.preventDefault(event);
-                dispatch(
-                  FieldList.changeValues(
-                    User.tags,
-                    User.tags.push("", values),
-                  ),
-                );
+                dispatch(FieldList.changeValues(User.tags, User.tags.push("", values)));
               }
             )>
             (ReasonReact.string("Add +"))
@@ -368,45 +298,21 @@ module UserForm = {
             <input
               type_="text"
               value=(
-                values.mainAddress
-                |. Belt.Option.map(address => address.street)
-                |. Belt.Option.getWithDefault("")
+                values.mainAddress |. Belt.Option.map(address => address.street) |. Belt.Option.getWithDefault("")
               )
-              onFocus=(
-                _event => dispatch(User.mainAddress.fields.street.bind.focus)
-              )
-              onBlur=(
-                _event => dispatch(User.mainAddress.fields.street.bind.blur)
-              )
-              onChange=(
-                Helper.handleDomFormChange(
-                  dispatch, User.mainAddress.fields.street, value =>
-                  value
-                )
-              )
+              onFocus=(_event => dispatch(User.mainAddress.fields.street.bind.focus))
+              onBlur=(_event => dispatch(User.mainAddress.fields.street.bind.blur))
+              onChange=(Helper.handleDomFormChange(dispatch, User.mainAddress.fields.street, value => value))
             />
             (displayErrors(form, User.mainAddress.fields.street.bind))
           </div>
           <div>
             <input
               type_="text"
-              value=(
-                values.mainAddress
-                |. Belt.Option.map(address => address.city)
-                |. Belt.Option.getWithDefault("")
-              )
-              onFocus=(
-                _event => dispatch(User.mainAddress.fields.city.bind.focus)
-              )
-              onBlur=(
-                _event => dispatch(User.mainAddress.fields.city.bind.blur)
-              )
-              onChange=(
-                Helper.handleDomFormChange(
-                  dispatch, User.mainAddress.fields.city, value =>
-                  value
-                )
-              )
+              value=(values.mainAddress |. Belt.Option.map(address => address.city) |. Belt.Option.getWithDefault(""))
+              onFocus=(_event => dispatch(User.mainAddress.fields.city.bind.focus))
+              onBlur=(_event => dispatch(User.mainAddress.fields.city.bind.blur))
+              onChange=(Helper.handleDomFormChange(dispatch, User.mainAddress.fields.city, value => value))
             />
             (displayErrors(form, User.mainAddress.fields.city.bind))
           </div>
@@ -421,61 +327,25 @@ module UserForm = {
                        <input
                          type_="text"
                          value=address.street
-                         onFocus=(
-                           _event =>
-                             dispatch(
-                               User.addresses.getRow(i).street.bind.focus,
-                             )
-                         )
-                         onBlur=(
-                           _event =>
-                             dispatch(
-                               User.addresses.getRow(i).street.bind.blur,
-                             )
-                         )
+                         onFocus=(_event => dispatch(User.addresses.getRow(i).street.bind.focus))
+                         onBlur=(_event => dispatch(User.addresses.getRow(i).street.bind.blur))
                          onChange=(
-                           Helper.handleDomFormChange(
-                             dispatch, User.addresses.getRow(i).street, value =>
-                             value
-                           )
+                           Helper.handleDomFormChange(dispatch, User.addresses.getRow(i).street, value => value)
                          )
                        />
-                       (
-                         displayErrors(
-                           form,
-                           User.addresses.getRow(i).street.bind,
-                         )
-                       )
+                       (displayErrors(form, User.addresses.getRow(i).street.bind))
                      </div>
                      <div>
                        <input
                          type_="text"
                          value=address.city
-                         onFocus=(
-                           _event =>
-                             dispatch(
-                               User.addresses.getRow(i).city.bind.focus,
-                             )
-                         )
-                         onBlur=(
-                           _event =>
-                             dispatch(
-                               User.addresses.getRow(i).city.bind.blur,
-                             )
-                         )
+                         onFocus=(_event => dispatch(User.addresses.getRow(i).city.bind.focus))
+                         onBlur=(_event => dispatch(User.addresses.getRow(i).city.bind.blur))
                          onChange=(
-                           Helper.handleDomFormChange(
-                             dispatch, User.addresses.getRow(i).city, value =>
-                             value
-                           )
+                           Helper.handleDomFormChange(dispatch, User.addresses.getRow(i).city, value => value)
                          )
                        />
-                       (
-                         displayErrors(
-                           form,
-                           User.addresses.getRow(i).city.bind,
-                         )
-                       )
+                       (displayErrors(form, User.addresses.getRow(i).city.bind))
                      </div>
                    </li>
                  )
@@ -489,23 +359,14 @@ module UserForm = {
               event => {
                 ReactEventRe.Synthetic.preventDefault(event);
                 dispatch(
-                  FieldList.changeValues(
-                    User.addresses,
-                    User.addresses.push({street: "", city: ""}, values),
-                  ),
+                  FieldList.changeValues(User.addresses, User.addresses.push({street: "", city: ""}, values)),
                 );
               }
             )>
             (ReasonReact.string("Add +"))
           </button>
         </div>
-        <div>
-          (
-            ReasonReact.string(
-              Form.formHasErrors(form) ? "is invalid" : "is valid",
-            )
-          )
-        </div>
+        <div> (ReasonReact.string(Form.formHasErrors(form) ? "is invalid" : "is valid")) </div>
       </div>;
     },
   };

@@ -57,41 +57,24 @@ let mapField = (form, f, key) =>
   mapFields(
     form,
     fields => {
-      let field =
-        SMap.get(fields, key) |> Belt.Option.getWithDefault(_, emptyField);
+      let field = SMap.get(fields, key) |> Belt.Option.getWithDefault(_, emptyField);
       SMap.set(fields, key, f(field));
     },
   );
 
-let getField = (key, form) =>
-  SMap.get(form.fields, key) |> Belt.Option.getWithDefault(_, emptyField);
+let getField = (key, form) => SMap.get(form.fields, key) |> Belt.Option.getWithDefault(_, emptyField);
 
-let focus = (key, form) =>
-  mapField(form, field => {...field, focus: true}, key) |> form.onFocus(key);
+let focus = (key, form) => mapField(form, field => {...field, focus: true}, key) |> form.onFocus(key);
 
-let blur = (key, form) =>
-  mapField(form, field => {...field, focus: false, dirty: true}, key)
-  |> form.onBlur(key);
+let blur = (key, form) => mapField(form, field => {...field, focus: false, dirty: true}, key) |> form.onBlur(key);
 
-let addRootError = (error, form) => {
-  ...form,
-  rootErrors: [error, ...form.rootErrors],
-};
+let addRootError = (error, form) => {...form, rootErrors: [error, ...form.rootErrors]};
 
-let addSubmitError = (error, form) => {
-  ...form,
-  submitErrors: [error, ...form.submitErrors],
-};
+let addSubmitError = (error, form) => {...form, submitErrors: [error, ...form.submitErrors]};
 
-let addError = (key, error, form) =>
-  mapField(
-    form,
-    field => {...field, errors: [error, ...field.errors]},
-    key,
-  );
+let addError = (key, error, form) => mapField(form, field => {...field, errors: [error, ...field.errors]}, key);
 
-let clearErrors = (key, form) =>
-  mapField(form, field => {...field, errors: []}, key);
+let clearErrors = (key, form) => mapField(form, field => {...field, errors: []}, key);
 
 let clearRootErrors = form => {...form, rootErrors: []};
 
@@ -108,9 +91,7 @@ let clearAllFieldsErrors = form =>
         (fields, key) => {
           let field = SMap.get(fields, key);
           field
-          |> Belt.Option.map(_, field =>
-               SMap.set(fields, key, {...field, errors: []})
-             )
+          |> Belt.Option.map(_, field => SMap.set(fields, key, {...field, errors: []}))
           |> Belt.Option.getWithDefault(_, fields);
         },
       );
@@ -119,11 +100,7 @@ let clearAllFieldsErrors = form =>
 
 let changeValues = (keys, values, form) => {
   let form = {...form, values};
-  List.fold_left(
-    (form, key) => mapField(form, field => {...field, dirty: true}, key),
-    form,
-    keys,
-  )
+  List.fold_left((form, key) => mapField(form, field => {...field, dirty: true}, key), form, keys)
   |> form.onChangeValue
   |> clearRootErrors
   |> clearAllFieldsErrors
@@ -144,8 +121,7 @@ let getValues = form => form.values;
 
 let getInitialValues = form => form.initialValues;
 
-let formIsDirty = form =>
-  SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.dirty);
+let formIsDirty = form => SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.dirty);
 
 let formHasRootErrors = form => List.length(form.rootErrors) > 0;
 
@@ -157,15 +133,9 @@ let getSubmitErrors = form => form.submitErrors;
 
 let formHasErrors = form =>
   formHasRootErrors(form)
-  || SMap.reduce(form.fields, false, (acc, _key, field) =>
-       acc || List.length(field.errors) > 0
-     );
+  || SMap.reduce(form.fields, false, (acc, _key, field) => acc || List.length(field.errors) > 0);
 
-let startSubmit = form => {
-  ...form,
-  submitting: true,
-  nbSubmits: form.nbSubmits + 1,
-};
+let startSubmit = form => {...form, submitting: true, nbSubmits: form.nbSubmits + 1};
 
 let stopSubmit = form => {...form, submitting: false};
 

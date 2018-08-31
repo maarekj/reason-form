@@ -9,12 +9,7 @@ type t('values, 'obj, 'fields) = {
 };
 
 let createField =
-    (
-      ~key: string,
-      ~getObject: 'values => 'obj,
-      ~setObject: ('obj, 'values) => 'values,
-      ~createFields,
-    )
+    (~key: string, ~getObject: 'values => 'obj, ~setObject: ('obj, 'values) => 'values, ~createFields)
     : t('values, 'obj, 'fields) => {
   key,
   getObject,
@@ -22,15 +17,8 @@ let createField =
   bind: Bind.bind(~key, ~getValue=getObject, ~setValue=setObject),
   fields:
     createFields((field: Field.t(_, _)) =>
-      Field.wrapField(
-        ~key=key ++ "." ++ field.key,
-        ~field,
-        ~getValue=getObject,
-        ~setValue=setObject,
-        (),
-      )
+      Field.wrapField(~key=key ++ "." ++ field.key, ~field, ~getValue=getObject, ~setValue=setObject, ())
     ),
 };
 
-let changeValues = (field, newValues, form) =>
-  Form.changeValues([field.key], newValues, form);
+let changeValues = (field, newValues, form) => Form.changeValues([field.key], newValues, form);

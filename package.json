@@ -13,7 +13,8 @@
     "build:reason": "bsb -make-world",
     "build:webpack": "webpack",
     "build": "yarn run build:reason && yarn run build:webpack",
-    "clean": "bsb -clean-world && rm -Rfv build/* public/build/*"
+    "clean": "bsb -clean-world && rm -Rfv build/* public/build/*",
+    "refmt": "bsrefmt -w 120 --in-place $(find src -name '*.re') $(find src -name '*.rei')"
   },
   "keywords": [],
   "author": "",
