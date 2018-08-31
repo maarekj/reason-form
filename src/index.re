@@ -70,7 +70,7 @@ module User = {
       ~getList=values => values.tags,
       ~setList=(value, values) => {...values, tags: value},
       ~createFields=
-        wrapField =>
+        ({wrapField}) =>
           wrapField(Field.createField(~key="root", ~getValue=values => values, ~setValue=(value, _) => value)),
     );
   type address = {
@@ -82,7 +82,7 @@ module User = {
       ~key="addresses",
       ~getList=(values: t) => values.addresses,
       ~setList=(value: list(Address.t), values: t) => {...values, addresses: value},
-      ~createFields=wrapField => {street: wrapField(Address.street), city: wrapField(Address.city)},
+      ~createFields=({wrapField}) => {street: wrapField(Address.street), city: wrapField(Address.city)},
     );
 
   let mainAddress =
@@ -91,7 +91,7 @@ module User = {
       ~getObject=values => values.mainAddress,
       ~setObject=(value, values) => {...values, mainAddress: value},
       ~createFields=
-        wrapField => {
+        ({wrapField}) => {
           street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
           city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
         },

@@ -1,5 +1,3 @@
-[%%debugger.chrome];
-
 type t('values, 'value, 'row) = {
   key: string,
   count: 'values => int,
@@ -27,12 +25,14 @@ let insert = (list, index, elt) => {
   };
 };
 
+type wrapper('item, 'value, 'fields) = {wrapField: 'a .Field.t('item, 'a) => Field.t('value, 'a)};
+
 let createField =
     (
       ~key: string,
       ~getList: 'value => list('item),
       ~setList: (list('item), 'value) => 'value,
-      ~createFields: (Field.t('item, 'string) => Field.t('value, 'string)) => 'row,
+      ~createFields: wrapper('item, 'value, 'fields) => 'row,
     )
     : t('value, 'item, 'row) => {
   key,
@@ -44,17 +44,18 @@ let createField =
   setList,
   bind: Bind.bind(~key, ~getValue=getList, ~setValue=setList),
   getRow: index =>
-    createFields(field =>
-      Field.wrapField(
-        ~key=key ++ "." ++ string_of_int(index) ++ "." ++ field.key,
-        ~field,
-        ~getValue=user => Belt.List.getExn(getList(user), index),
-        ~setValue=
-          (row, value) =>
-            getList(value) |> Belt.List.mapWithIndex(_, (i, e) => i == index ? row : e) |> setList(_, value),
-        (),
-      )
-    ),
+    createFields({
+      wrapField: field =>
+        Field.wrapField(
+          ~key=key ++ "." ++ string_of_int(index) ++ "." ++ field.key,
+          ~field,
+          ~getValue=user => Belt.List.getExn(getList(user), index),
+          ~setValue=
+            (row, value) =>
+              getList(value) |> Belt.List.mapWithIndex(_, (i, e) => i == index ? row : e) |> setList(_, value),
+          (),
+        ),
+    }),
 };
 
 let changeValues = (field, newValues, form) => Form.changeValues([field.key], newValues, form);

@@ -2,9 +2,16 @@ open Jest;
 
 module Address = {
   type t = {
+    numero: int,
     street: string,
     city: string,
   };
+  let numero =
+    Field.createField(
+      ~key="numero",
+      ~getValue=values => values.numero,
+      ~setValue=(value, values) => {...values, numero: value},
+    );
   let street =
     Field.createField(
       ~key="street",
@@ -17,7 +24,7 @@ module Address = {
       ~getValue=values => values.city,
       ~setValue=(value, values) => {...values, city: value},
     );
-  let empty = {street: "", city: ""};
+  let empty = {numero: 0, street: "", city: ""};
 };
 
 module User = {
@@ -72,10 +79,11 @@ module User = {
       ~getList=values => values.tags,
       ~setList=(value, values) => {...values, tags: value},
       ~createFields=
-        wrapField =>
+        ({wrapField}) =>
           wrapField(Field.createField(~key="root", ~getValue=values => values, ~setValue=(value, _) => value)),
     );
   type address = {
+    numero: Field.t(t, int),
     street: Field.t(t, string),
     city: Field.t(t, string),
   };
@@ -84,7 +92,12 @@ module User = {
       ~key="addresses",
       ~getList=(values: t) => values.addresses,
       ~setList=(value: list(Address.t), values: t) => {...values, addresses: value},
-      ~createFields=wrapField => {street: wrapField(Address.street), city: wrapField(Address.city)},
+      ~createFields=
+        ({wrapField}) => {
+          numero: wrapField(Address.numero),
+          street: wrapField(Address.street),
+          city: wrapField(Address.city),
+        },
     );
 
   let mainAddress =
@@ -93,7 +106,8 @@ module User = {
       ~getObject=values => values.mainAddress,
       ~setObject=(value, values) => {...values, mainAddress: value},
       ~createFields=
-        wrapField => {
+        ({wrapField}) => {
+          numero: wrapField(Field.wrapOptionField(~field=Address.numero, ~empty=Address.empty, ())),
           street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
           city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
         },
