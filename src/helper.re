@@ -3,7 +3,7 @@ let getValue = event => event->ReactEvent.Form.target##value;
 type dispatch('a) = (Form.form('a) => Form.form('a)) => unit;
 
 let handleFormChange =
-    (dispatch: dispatch('a), field: Field.t('values, 'value), mapper: 'a => 'value, param: 'a): unit => {
+    (dispatch: dispatch('a), field: Field.t('values, 'value), mapper: 'b => 'value, param: 'b): unit => {
   let value = mapper(param);
   dispatch(form => {
     let values = Form.getValues(form);
