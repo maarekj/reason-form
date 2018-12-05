@@ -1,7 +1,7 @@
 {
-  "name": "reason-form",
+  "name": "@maarekj/reason-form",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "prepare": "install-self-peers -- --ignore-scripts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Joseph Maarek <josephmaarek@gmail.com>",
   "license": "MIT",
   "dependencies": {},
   "jest": {
@@ -41,5 +41,6 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "reason-react": "^0.5.3"
-  }
+  },
+  "repository": "https://github.com/maarekj/reason-form.git"
 }
