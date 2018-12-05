@@ -63,14 +63,18 @@ let formHasSubmitErrors: form('a) => bool;
 
 let getSubmitErrors: form('a) => list(string);
 
+let formHasFieldErrors: form('a) => bool;
+
 let formHasErrors: form('a) => bool;
 
 let startSubmit: form('a) => form('a);
 
 let stopSubmit: form('a) => form('a);
 
+let submitSuccess: form('a) => form('a);
+
+let isSubmitSuccess: form('a) => bool;
+
 let isSubmitting: form('a) => bool;
 
 let getNbSubmits: form('a) => int;
-
-let fieldsToJSON: form('a) => Js.t({..});

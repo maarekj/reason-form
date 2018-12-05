@@ -7,22 +7,27 @@
   "refmt": 3,
   "suffix": ".bs.js",
   "bs-dependencies": [
-    "bs-jest",
     "reason-react"
   ],
+  "bs-dev-dependencies": [
+    "bs-jest"
+  ],
   "bsc-flags": [
-    "-bs-no-version-header",
-    "-bs-super-errors",
-    "-bs-g"
+    "-bs-super-errors"
   ],
   "sources": [
     {
-      "dir": "src",
-      "subdirs": []
+      "dir": "src"
     },
     {
       "dir": "src/__tests__",
-      "subdirs": []
+      "subdirs": [],
+      "type": "dev"
+    },
+    {
+      "dir": "src/example",
+      "subdirs": [],
+      "type": "dev"
     }
   ]
 }

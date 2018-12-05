@@ -14,6 +14,7 @@ type form('a) = {
   fields: metaFields,
   rootErrors: list(string),
   submitErrors: list(string),
+  submitSuccess: bool,
   onValidate: form('a) => form('a),
   onBlur: (string, form('a)) => form('a),
   onFocus: (string, form('a)) => form('a),
@@ -39,6 +40,7 @@ let initializeForm =
     fields: SMap.empty,
     rootErrors,
     submitErrors,
+    submitSuccess: false,
     onValidate,
     onBlur,
     onFocus,
@@ -131,39 +133,19 @@ let formHasSubmitErrors = form => List.length(form.submitErrors) > 0;
 
 let getSubmitErrors = form => form.submitErrors;
 
-let formHasErrors = form =>
-  formHasRootErrors(form)
-  || SMap.reduce(form.fields, false, (acc, _key, field) => acc || List.length(field.errors) > 0);
+let formHasFieldErrors = form =>
+  SMap.reduce(form.fields, false, (acc, _key, field) => acc || List.length(field.errors) > 0);
+
+let formHasErrors = form => formHasRootErrors(form) || formHasFieldErrors(form);
 
 let startSubmit = form => {...form, submitting: true, nbSubmits: form.nbSubmits + 1};
 
 let stopSubmit = form => {...form, submitting: false};
 
+let submitSuccess = form => {...form, submitSuccess: true};
+
+let isSubmitSuccess = form => form.submitSuccess;
+
 let isSubmitting = form => form.submitting;
 
 let getNbSubmits = form => form.nbSubmits;
-
-let fieldsToJSON = form =>
-  Obj.magic({
-    "initialValues": getInitialValues(form),
-    "values": getValues(form),
-    "fields":
-      SMap.reduce(
-        form.fields,
-        Js.Dict.empty(),
-        (dict, key, _field) => {
-          Js.Dict.set(
-            dict,
-            key,
-            {
-              "focus": hasFocus(key, form),
-              "blur": isBlur(key, form),
-              "dirty": isDirty(key, form),
-              "hasError": hasError(key, form),
-              "errors": getErrors(key, form),
-            },
-          );
-          dict;
-        },
-      ),
-  });

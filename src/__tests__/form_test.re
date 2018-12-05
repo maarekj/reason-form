@@ -116,55 +116,56 @@ module User = {
   let onValidate = form => {
     let id = form => form;
     let values = Form.getValues(form);
+    let addError = Helper.addError;
 
     let form =
       form
       |> (
         switch (values.lastname) {
         | None
-        | Some("") => lastname.bind.addError("Lastname is required.")
+        | Some("") => addError(`field(lastname), "Lastname is required.")
         | _ => id
         }
       )
       |> (
         switch (values.firstname) {
         | None
-        | Some("") => firstname.bind.addError("Firstname is required.")
+        | Some("") => addError(`field(firstname), "Firstname is required.")
         | _ => id
         }
       )
       |> (
         switch (values.username) {
         | None
-        | Some("") => username.bind.addError("Username is required.")
-        | Some("maarek") => username.bind.addError("Username is already used.")
+        | Some("") => addError(`field(username), "Username is required.")
+        | Some("maarek") => addError(`field(username), "Username is already used.")
         | _ => id
         }
       )
       |> (
         switch (values.age) {
-        | a when a < 18 => age.bind.addError("You must be major.")
+        | a when a < 18 => addError(`field(age), "You must be major.")
         | _ => id
         }
       );
 
     let form =
       Belt.List.size(values.addresses) < 2 ?
-        addresses.bind.addError("Must contains one address at least.", form) : form;
+        addError(`list(addresses), "Must contains one address at least.", form) : form;
 
     let validateAddress = (address: Address.t, field: address, form) =>
       form
       |> (
         switch (address.street) {
-        | "" => field.street.bind.addError("Street is required.")
-        | "forbidden" => field.street.bind.addError("Forbidden street.")
+        | "" => addError(`field(field.street), "Street is required.")
+        | "forbidden" => addError(`field(field.street), "Forbidden street.")
         | _ => id
         }
       )
       |> (
         switch (address.city) {
-        | "" => field.city.bind.addError("City is required.")
-        | "forbidden" => field.city.bind.addError("Forbidden city.")
+        | "" => addError(`field(field.city), "City is required.")
+        | "forbidden" => addError(`field(field.city), "Forbidden city.")
         | _ => id
         }
       );
@@ -188,8 +189,8 @@ module User = {
            form
            |> (
              switch (tag) {
-             | "" => tags.getRow(i).bind.addError("Tag is required.")
-             | "forbidden" => tags.getRow(i).bind.addError("Forbidden tag.")
+             | "" => addError(`field(tags.getRow(i)), "Tag is required.")
+             | "forbidden" => addError(`field(tags.getRow(i)), "Forbidden tag.")
              | _ => id
              }
            )
@@ -227,35 +228,38 @@ describe("#user form", () => {
       ("form has not root errors", testEqual(false, Form.formHasRootErrors(form))),
       ("form has errors", testEqual(true, Form.formHasErrors(form))),
       ("form has not submit errors", testEqual(false, Form.formHasSubmitErrors(form))),
-      ("lastname focus", testEqual(false, User.lastname.bind.hasFocus(form))),
-      ("lastname blur", testEqual(true, User.lastname.bind.isBlur(form))),
-      ("lastname dirty", testEqual(false, User.lastname.bind.isDirty(form))),
-      ("lastname has error", testEqual(true, User.lastname.bind.hasError(form))),
-      ("lastname get errors", testList(["Lastname is required."], User.lastname.bind.getErrors(form))),
+      ("lastname focus", testEqual(false, Helper.hasFocus(`field(User.lastname), form))),
+      ("lastname blur", testEqual(true, Helper.isBlur(`field(User.lastname), form))),
+      ("lastname dirty", testEqual(false, Helper.isDirty(`field(User.lastname), form))),
+      ("lastname has error", testEqual(true, Helper.hasError(`field(User.lastname), form))),
+      ("lastname get errors", testList(["Lastname is required."], Helper.getErrors(`field(User.lastname), form))),
       ("lastname value", testOptionString("--None--", Form.getValues(form).lastname)),
-      ("firstname focus", testEqual(false, User.firstname.bind.hasFocus(form))),
-      ("firstname blur", testEqual(true, User.firstname.bind.isBlur(form))),
-      ("firstname dirty", testEqual(false, User.firstname.bind.isDirty(form))),
-      ("firstname has error", testEqual(true, User.firstname.bind.hasError(form))),
-      ("firstname get errors", testList(["Firstname is required."], User.firstname.bind.getErrors(form))),
+      ("firstname focus", testEqual(false, Helper.hasFocus(`field(User.firstname), form))),
+      ("firstname blur", testEqual(true, Helper.isBlur(`field(User.firstname), form))),
+      ("firstname dirty", testEqual(false, Helper.isDirty(`field(User.firstname), form))),
+      ("firstname has error", testEqual(true, Helper.hasError(`field(User.firstname), form))),
+      (
+        "firstname get errors",
+        testList(["Firstname is required."], Helper.getErrors(`field(User.firstname), form)),
+      ),
       ("firstname value", testOptionString("--None--", Form.getValues(form).firstname)),
-      ("username focus", testEqual(false, User.username.bind.hasFocus(form))),
-      ("username blur", testEqual(true, User.username.bind.isBlur(form))),
-      ("username dirty", testEqual(false, User.username.bind.isDirty(form))),
-      ("username has error", testEqual(true, User.username.bind.hasError(form))),
-      ("username get errors", testList(["Username is required."], User.username.bind.getErrors(form))),
+      ("username focus", testEqual(false, Helper.hasFocus(`field(User.username), form))),
+      ("username blur", testEqual(true, Helper.isBlur(`field(User.username), form))),
+      ("username dirty", testEqual(false, Helper.isDirty(`field(User.username), form))),
+      ("username has error", testEqual(true, Helper.hasError(`field(User.username), form))),
+      ("username get errors", testList(["Username is required."], Helper.getErrors(`field(User.username), form))),
       ("username value", testOptionString("--None--", Form.getValues(form).username)),
-      ("age focus", testEqual(false, User.age.bind.hasFocus(form))),
-      ("age blur", testEqual(true, User.age.bind.isBlur(form))),
-      ("age dirty", testEqual(false, User.age.bind.isDirty(form))),
-      ("age has error", testEqual(false, User.age.bind.hasError(form))),
-      ("age get errors", testList([], User.age.bind.getErrors(form))),
+      ("age focus", testEqual(false, Helper.hasFocus(`field(User.age), form))),
+      ("age blur", testEqual(true, Helper.isBlur(`field(User.age), form))),
+      ("age dirty", testEqual(false, Helper.isDirty(`field(User.age), form))),
+      ("age has error", testEqual(false, Helper.hasError(`field(User.age), form))),
+      ("age get errors", testList([], Helper.getErrors(`field(User.age), form))),
       ("age value", testEqual(18, Form.getValues(form).age)),
-      ("tags focus", testEqual(false, User.tags.bind.hasFocus(form))),
-      ("tags blur", testEqual(true, User.tags.bind.isBlur(form))),
-      ("tags dirty", testEqual(false, User.tags.bind.isDirty(form))),
-      ("tags has error", testEqual(false, User.tags.bind.hasError(form))),
-      ("tags get errors", testList([], User.tags.bind.getErrors(form))),
+      ("tags focus", testEqual(false, Helper.hasFocus(`list(User.tags), form))),
+      ("tags blur", testEqual(true, Helper.isBlur(`list(User.tags), form))),
+      ("tags dirty", testEqual(false, Helper.isDirty(`list(User.tags), form))),
+      ("tags has error", testEqual(false, Helper.hasError(`list(User.tags), form))),
+      ("tags get errors", testList([], Helper.getErrors(`list(User.tags), form))),
       ("tags values", testList([], Form.getValues(form).tags)),
       ("tags count", testEqual(0, User.tags.count(Form.getValues(form)))),
     ],
@@ -263,24 +267,24 @@ describe("#user form", () => {
 
   let form =
     form
-    |> User.lastname.bind.focus
+    |> Helper.focus(`field(User.lastname))
     |> changeValue(User.lastname, Some("Maarek"))
-    |> User.lastname.bind.blur
-    |> User.firstname.bind.focus
+    |> Helper.blur(`field(User.lastname))
+    |> Helper.focus(`field(User.firstname))
     |> changeValue(User.firstname, Some("Joseph"))
-    |> User.firstname.bind.blur
-    |> User.username.bind.focus
+    |> Helper.blur(`field(User.firstname))
+    |> Helper.focus(`field(User.username))
     |> changeValue(User.username, Some("maarekj"))
-    |> User.username.bind.blur
-    |> User.age.bind.focus
+    |> Helper.blur(`field(User.username))
+    |> Helper.focus(`field(User.age))
     |> changeValue(User.age, 28)
-    |> User.age.bind.blur;
+    |> Helper.blur(`field(User.age));
 
-  let form = form |> FieldList.changeValues(User.tags, User.tags.push("tag1", Form.getValues(form)));
-  let form = form |> FieldList.changeValues(User.tags, User.tags.push("tag2", Form.getValues(form)));
-  let form = form |> FieldList.changeValues(User.tags, User.tags.push("tag3", Form.getValues(form)));
-  let form = form |> FieldList.changeValues(User.tags, User.tags.insert(0, "tag0", Form.getValues(form)));
-  let form = form |> FieldList.changeValues(User.tags, User.tags.insert(4, "tag4", Form.getValues(form)));
+  let form = form |> Form.changeValues([User.tags.key], User.tags.push("tag1", Form.getValues(form)));
+  let form = form |> Form.changeValues([User.tags.key], User.tags.push("tag2", Form.getValues(form)));
+  let form = form |> Form.changeValues([User.tags.key], User.tags.push("tag3", Form.getValues(form)));
+  let form = form |> Form.changeValues([User.tags.key], User.tags.insert(0, "tag0", Form.getValues(form)));
+  let form = form |> Form.changeValues([User.tags.key], User.tags.insert(4, "tag4", Form.getValues(form)));
 
   testMany(
     "test after changes",
@@ -289,35 +293,35 @@ describe("#user form", () => {
       ("form has not root errors", testEqual(false, Form.formHasRootErrors(form))),
       ("form has errors", testEqual(true, Form.formHasErrors(form))),
       ("form has not submit errors", testEqual(false, Form.formHasSubmitErrors(form))),
-      ("lastname focus", testEqual(false, User.lastname.bind.hasFocus(form))),
-      ("lastname blur", testEqual(true, User.lastname.bind.isBlur(form))),
-      ("lastname dirty", testEqual(true, User.lastname.bind.isDirty(form))),
-      ("lastname has error", testEqual(false, User.lastname.bind.hasError(form))),
-      ("lastname get errors", testList([], User.lastname.bind.getErrors(form))),
+      ("lastname focus", testEqual(false, Helper.hasFocus(`field(User.lastname), form))),
+      ("lastname blur", testEqual(true, Helper.isBlur(`field(User.lastname), form))),
+      ("lastname dirty", testEqual(true, Helper.isDirty(`field(User.lastname), form))),
+      ("lastname has error", testEqual(false, Helper.hasError(`field(User.lastname), form))),
+      ("lastname get errors", testList([], Helper.getErrors(`field(User.lastname), form))),
       ("new value of lastname", testOptionString("Maarek", Form.getValues(form).lastname)),
-      ("firstname focus", testEqual(false, User.firstname.bind.hasFocus(form))),
-      ("firstname blur", testEqual(true, User.firstname.bind.isBlur(form))),
-      ("firstname dirty", testEqual(true, User.firstname.bind.isDirty(form))),
-      ("firstname has error", testEqual(false, User.firstname.bind.hasError(form))),
-      ("firstname get errors", testList([], User.firstname.bind.getErrors(form))),
+      ("firstname focus", testEqual(false, Helper.hasFocus(`field(User.firstname), form))),
+      ("firstname blur", testEqual(true, Helper.isBlur(`field(User.firstname), form))),
+      ("firstname dirty", testEqual(true, Helper.isDirty(`field(User.firstname), form))),
+      ("firstname has error", testEqual(false, Helper.hasError(`field(User.firstname), form))),
+      ("firstname get errors", testList([], Helper.getErrors(`field(User.firstname), form))),
       ("new value of firstname", testOptionString("Joseph", Form.getValues(form).firstname)),
-      ("username focus", testEqual(false, User.username.bind.hasFocus(form))),
-      ("username blur", testEqual(true, User.username.bind.isBlur(form))),
-      ("username dirty", testEqual(true, User.username.bind.isDirty(form))),
-      ("username has error", testEqual(false, User.username.bind.hasError(form))),
-      ("username get errors", testList([], User.username.bind.getErrors(form))),
+      ("username focus", testEqual(false, Helper.hasFocus(`field(User.username), form))),
+      ("username blur", testEqual(true, Helper.isBlur(`field(User.username), form))),
+      ("username dirty", testEqual(true, Helper.isDirty(`field(User.username), form))),
+      ("username has error", testEqual(false, Helper.hasError(`field(User.username), form))),
+      ("username get errors", testList([], Helper.getErrors(`field(User.username), form))),
       ("new value of username", testOptionString("maarekj", Form.getValues(form).username)),
-      ("age focus", testEqual(false, User.age.bind.hasFocus(form))),
-      ("age blur", testEqual(true, User.age.bind.isBlur(form))),
-      ("age dirty", testEqual(true, User.age.bind.isDirty(form))),
-      ("age has error", testEqual(false, User.age.bind.hasError(form))),
-      ("age get errors", testList([], User.age.bind.getErrors(form))),
+      ("age focus", testEqual(false, Helper.hasFocus(`field(User.age), form))),
+      ("age blur", testEqual(true, Helper.isBlur(`field(User.age), form))),
+      ("age dirty", testEqual(true, Helper.isDirty(`field(User.age), form))),
+      ("age has error", testEqual(false, Helper.hasError(`field(User.age), form))),
+      ("age get errors", testList([], Helper.getErrors(`field(User.age), form))),
       ("new value of age", testEqual(28, Form.getValues(form).age)),
-      ("tags focus", testEqual(false, User.tags.bind.hasFocus(form))),
-      ("tags blur", testEqual(true, User.tags.bind.isBlur(form))),
-      ("tags dirty", testEqual(true, User.tags.bind.isDirty(form))),
-      ("tags has error", testEqual(false, User.tags.bind.hasError(form))),
-      ("tags get errors", testList([], User.tags.bind.getErrors(form))),
+      ("tags focus", testEqual(false, Helper.hasFocus(`list(User.tags), form))),
+      ("tags blur", testEqual(true, Helper.isBlur(`list(User.tags), form))),
+      ("tags dirty", testEqual(true, Helper.isDirty(`list(User.tags), form))),
+      ("tags has error", testEqual(false, Helper.hasError(`list(User.tags), form))),
+      ("tags get errors", testList([], Helper.getErrors(`list(User.tags), form))),
       ("new value of tags", testList(["tag0", "tag1", "tag2", "tag3", "tag4"], Form.getValues(form).tags)),
       ("tags count", testEqual(5, User.tags.count(Form.getValues(form)))),
     ],

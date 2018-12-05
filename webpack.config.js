@@ -5,7 +5,7 @@ var config = {
   target: "node",
   mode: "development",
   entry: {
-    index: ['./lib/js/src/index.bs.js'],
+    index: ['./lib/js/src/example/example_index.bs.js'],
   },
   output: {
     path: path.join(__dirname, "build"),

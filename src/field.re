@@ -2,24 +2,24 @@ type t('values, 'value) = {
   key: string,
   setValue: ('value, 'values) => 'values,
   getValue: 'values => 'value,
-  bind: Bind.t('values, 'value),
 };
+
 type field('values, 'value) = t('values, 'value);
+
+module MakeFieldType = (SValuesType: {type t;}, SValueType: {type t;}) => {
+  type t = field(SValuesType.t, SValueType.t);
+};
+
+type wrapper('obj, 'values, 'fields) = {wrapField: 'a. t('obj, 'a) => t('values, 'a)};
 
 let createField =
     (~key: string, ~getValue: 'values => 'value, ~setValue: ('value, 'values) => 'values): t('values, 'value) => {
   key,
   setValue,
   getValue,
-  bind: Bind.bind(~key, ~getValue, ~setValue),
 };
 
-let mapField = (~field, ~key: string=field.key, ~getValue, ~setValue, ()) => {
-  key,
-  getValue,
-  setValue,
-  bind: Bind.bind(~key=field.key, ~getValue, ~setValue),
-};
+let mapField = (~field, ~key: string=field.key, ~getValue, ~setValue, ()) => {key, getValue, setValue};
 
 let wrapField =
     (

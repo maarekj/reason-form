@@ -1,7 +1,7 @@
 {
   "name": "reason-form",
   "private": false,
-  "version": "0.4.1",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,9 +20,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "babel-polyfill": "^6.26.0"
-  },
+  "dependencies": {},
   "jest": {
     "testPathIgnorePatterns": [
       "/node_modules"
