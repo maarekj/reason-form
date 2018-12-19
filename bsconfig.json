@@ -1,5 +1,5 @@
 {
-  "name": "reason-form",
+  "name": "@maarekj/reason-form",
   "namespace": true,
   "reason": {
     "react-jsx": 2
