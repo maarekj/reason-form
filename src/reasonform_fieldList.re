@@ -1,3 +1,5 @@
+module Field = Reasonform_field;
+
 type t('values, 'value, 'row) = {
   key: string,
   count: 'values => int,

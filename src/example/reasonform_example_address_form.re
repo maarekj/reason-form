@@ -1,6 +1,8 @@
+open ReasonForm;
+
 module Make = (ReactForm: React.S) => {
-  module Address = Example_address_fields;
-  module RenderHelper = Example_render_helper;
+  module Address = Reasonform_example_address_fields;
+  module RenderHelper = Reasonform_example_render_helper;
   module WithStringField = React.WithField(ReactForm, String);
 
   let reactForm: module React.S = (module ReactForm);

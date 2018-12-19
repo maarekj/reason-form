@@ -1,4 +1,5 @@
 open Jest;
+open ReasonForm;
 
 module Address = {
   type t = {

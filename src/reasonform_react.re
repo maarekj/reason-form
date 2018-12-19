@@ -1,3 +1,10 @@
+module Form = Reasonform_form;
+module Field = Reasonform_field;
+module FieldObject = Reasonform_fieldObject;
+module FieldList = Reasonform_fieldList;
+module Helper = Reasonform_helper;
+module ReactContext = Reasonform_reactContext;
+
 module type Config = {
   type values;
   let initialForm: Form.form(values);
@@ -99,7 +106,7 @@ module type S = {
   type values;
   type form = Form.form(values);
 
-  module Context: React_context.Context with type context := form;
+  module Context: ReactContext.Context with type context := form;
 
   module WithFormMeta: WithFormMeta;
 
@@ -120,7 +127,7 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
   type form = Form.form(FormConfig.values);
 
   module Context =
-    React_context.CreateContext({
+    ReactContext.CreateContext({
       let debugName = "Form";
       type t = form;
       let value = FormConfig.initialForm;

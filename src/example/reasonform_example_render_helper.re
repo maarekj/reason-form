@@ -1,3 +1,5 @@
+open ReasonForm;
+
 module FieldErrors = {
   let component = ReasonReact.statelessComponent("FieldErrors");
   let make = (~meta: React.meta, ~reactForm: (module React.S), _children) => {

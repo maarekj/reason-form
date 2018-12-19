@@ -1,3 +1,6 @@
+module Field = Reasonform_field;
+module Form = Reasonform_form;
+
 type t('values, 'obj, 'fields) = {
   key: string,
   getObject: 'values => 'obj,

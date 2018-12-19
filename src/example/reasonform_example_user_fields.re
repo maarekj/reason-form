@@ -1,4 +1,6 @@
-module Address = Example_address_fields;
+open ReasonForm;
+
+module Address = Reasonform_example_address_fields;
 
 module Value = {
   type t = {

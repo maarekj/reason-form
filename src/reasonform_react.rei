@@ -1,6 +1,6 @@
 module type Config = {
   type values;
-  let initialForm: Form.form(values);
+  let initialForm: Reasonform_form.form(values);
 };
 
 module type SType = {type t;};
@@ -29,11 +29,11 @@ type meta = {
 };
 
 type fieldAction('values, 'v) = {
-  focus: Form.form('values) => Form.form('values),
-  blur: Form.form('values) => Form.form('values),
-  clearErrors: Form.form('values) => Form.form('values),
-  addError: (string, Form.form('values)) => Form.form('values),
-  setValue: ('v, Form.form('values)) => Form.form('values),
+  focus: Reasonform_form.form('values) => Reasonform_form.form('values),
+  blur: Reasonform_form.form('values) => Reasonform_form.form('values),
+  clearErrors: Reasonform_form.form('values) => Reasonform_form.form('values),
+  addError: (string, Reasonform_form.form('values)) => Reasonform_form.form('values),
+  setValue: ('v, Reasonform_form.form('values)) => Reasonform_form.form('values),
 };
 
 type withField('values, 'value) = {
@@ -43,16 +43,16 @@ type withField('values, 'value) = {
 };
 
 type listAction('values, 'v) = {
-  focus: Form.form('values) => Form.form('values),
-  blur: Form.form('values) => Form.form('values),
-  clearErrors: Form.form('values) => Form.form('values),
-  addError: (string, Form.form('values)) => Form.form('values),
-  setList: (list('v), Form.form('values)) => Form.form('values),
-  update: (list('v) => list('v), Form.form('values)) => Form.form('values),
-  add: ('v, Form.form('values)) => Form.form('values),
-  push: ('v, Form.form('values)) => Form.form('values),
-  insert: (int, 'v, Form.form('values)) => Form.form('values),
-  remove: (int, Form.form('values)) => Form.form('values),
+  focus: Reasonform_form.form('values) => Reasonform_form.form('values),
+  blur: Reasonform_form.form('values) => Reasonform_form.form('values),
+  clearErrors: Reasonform_form.form('values) => Reasonform_form.form('values),
+  addError: (string, Reasonform_form.form('values)) => Reasonform_form.form('values),
+  setList: (list('v), Reasonform_form.form('values)) => Reasonform_form.form('values),
+  update: (list('v) => list('v), Reasonform_form.form('values)) => Reasonform_form.form('values),
+  add: ('v, Reasonform_form.form('values)) => Reasonform_form.form('values),
+  push: ('v, Reasonform_form.form('values)) => Reasonform_form.form('values),
+  insert: (int, 'v, Reasonform_form.form('values)) => Reasonform_form.form('values),
+  remove: (int, Reasonform_form.form('values)) => Reasonform_form.form('values),
 };
 
 type withFieldList('values, 'value, 'row) = {
@@ -70,7 +70,7 @@ type withFieldObject('values, 'value, 'fields) = {
 
 let metaEqual: (meta, meta) => bool;
 let metaNotEqual: (meta, meta) => bool;
-let createMeta: (Helper.field('a, 'b, 'c, 'd), Form.form('e)) => meta;
+let createMeta: (Reasonform_helper.field('a, 'b, 'c, 'd), Reasonform_form.form('e)) => meta;
 
 module type WithFormMeta = {
   let make:
@@ -80,16 +80,16 @@ module type WithFormMeta = {
 
 module type S = {
   type values;
-  type form = Form.form(values);
-  module Context: React_context.Context with type context := form;
+  type form = Reasonform_form.form(values);
+  module Context: Reasonform_reactContext.Context with type context := form;
 
   module WithFormMeta: WithFormMeta;
 
   type action;
   let make:
     (
-      ~initialForm: Form.form(values),
-      ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
+      ~initialForm: Reasonform_form.form(values),
+      ~onSubmit: (~dispatch: (form => form) => unit, ~form: Reasonform_form.form(values)) =>
                  Js.Promise.t(Belt.Result.t('a, string)),
       ~render: (~dispatch: (form => form) => unit, ~handleSubmit: unit => unit) => ReasonReact.reactElement,
       array(ReasonReact.reactElement)
@@ -104,7 +104,7 @@ module WithField:
    {
     let make:
       (
-        ~field: Field.t(React.values, Config.t),
+        ~field: Reasonform_field.t(React.values, Config.t),
         ~render: withField(React.values, Config.t) => ReasonReact.reactElement,
         'a
       ) =>
@@ -116,7 +116,7 @@ module WithFieldList:
    {
     let make:
       (
-        ~field: FieldList.t(React.values, 'a, Row.t),
+        ~field: Reasonform_fieldList.t(React.values, 'a, Row.t),
         ~render: withFieldList(React.values, 'a, Row.t) => ReasonReact.reactElement,
         'b
       ) =>
@@ -127,6 +127,10 @@ module WithFieldObject:
   (React: S) =>
    {
     let make:
-      (~field: FieldObject.t('a, 'b, 'c), ~render: withFieldObject('a, 'b, 'c) => ReasonReact.reactElement, 'd) =>
+      (
+        ~field: Reasonform_fieldObject.t('a, 'b, 'c),
+        ~render: withFieldObject('a, 'b, 'c) => ReasonReact.reactElement,
+        'd
+      ) =>
       ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
   };

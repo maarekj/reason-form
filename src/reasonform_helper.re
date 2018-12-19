@@ -1,3 +1,8 @@
+module Form = Reasonform_form;
+module Field = Reasonform_field;
+module FieldObject = Reasonform_fieldObject;
+module FieldList = Reasonform_fieldList;
+
 let getValue = event => event->ReactEvent.Form.target##value;
 
 type dispatch('a) = (Form.form('a) => Form.form('a)) => unit;

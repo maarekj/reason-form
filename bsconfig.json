@@ -1,6 +1,6 @@
 {
   "name": "@maarekj/reason-form",
-  "namespace": true,
+  "namespace": false,
   "reason": {
     "react-jsx": 2
   },

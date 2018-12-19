@@ -1,5 +1,7 @@
-module Address = Example_address_fields;
-module User = Example_user_fields;
+open ReasonForm;
+
+module Address = Reasonform_example_address_fields;
+module User = Reasonform_example_user_fields;
 
 let initialForm = User.initializeForm();
 
@@ -20,8 +22,8 @@ module WithFieldObject = React.WithFieldObject(ReactForm);
 module WithListAddress = React.WithFieldList(ReactForm, (Address.Fields(User.Value)));
 module WithListString = React.WithFieldList(ReactForm, (Field.MakeFieldType(User.Value, String)));
 
-module RenderHelper = Example_render_helper;
-module AddressComponent = Example_address_form.Make(ReactForm);
+module RenderHelper = Reasonform_example_render_helper;
+module AddressComponent = Reasonform_example_address_form.Make(ReactForm);
 
 let delay = ms => {
   let unit = ();

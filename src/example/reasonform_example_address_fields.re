@@ -1,3 +1,5 @@
+open ReasonForm;
+
 module Value = {
   type t = {
     street: string,
