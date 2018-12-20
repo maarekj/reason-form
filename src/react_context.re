@@ -4,10 +4,7 @@ module type ContextConfig = {
   let value: t;
 };
 
-module type ConsumerConfig = {
-  type t;
-  type context;
-};
+module type ConsumerConfig = {type t;};
 
 module type Consumer = {
   type context;
@@ -15,8 +12,14 @@ module type Consumer = {
   type action =
     | ChangeState(context);
   let make:
-    (~selector: context => t, ~shouldUpdate: (t, t) => bool=?, ~render: t => ReasonReact.reactElement, _) =>
-    ReasonReact.component(t, ReasonReact.noRetainedProps, action);
+    (
+      ~pure: bool=?,
+      ~selector: context => t,
+      ~shouldUpdate: (t, t) => bool=?,
+      ~render: t => ReasonReact.reactElement,
+      _
+    ) =>
+    ReasonReact.component(t, t => ReasonReact.reactElement, action);
 };
 
 module type Context = {
@@ -28,19 +31,7 @@ module type Context = {
   };
 
   module CreateConsumer:
-    (ConsumerConfig: ConsumerConfig) =>
-     {
-      type action =
-        | ChangeState(context);
-      let make:
-        (
-          ~selector: context => ConsumerConfig.t,
-          ~shouldUpdate: (ConsumerConfig.t, ConsumerConfig.t) => bool=?,
-          ~render: ConsumerConfig.t => ReasonReact.reactElement,
-          'a
-        ) =>
-        ReasonReact.component(ConsumerConfig.t, ReasonReact.noRetainedProps, action);
-    };
+    (ConsumerConfig: ConsumerConfig) => Consumer with type context := context and type t := ConsumerConfig.t;
 };
 
 module CreateContext = (C: ContextConfig) : (Context with type context = C.t) => {
@@ -66,7 +57,6 @@ module CreateContext = (C: ContextConfig) : (Context with type context = C.t) =>
     let component = ReasonReact.statelessComponent(C.debugName ++ "ContextProvider");
     let make = (~value=?, children) => {
       ...component,
-      shouldUpdate: _self => false,
       willReceiveProps: _self => updateState(value),
       didMount: _self => {
         updateState(value);
@@ -82,14 +72,18 @@ module CreateContext = (C: ContextConfig) : (Context with type context = C.t) =>
          : (Consumer with type t := ConsumerConfig.t and type context := C.t) => {
     type action =
       | ChangeState(C.t);
-    let component = ReasonReact.reducerComponent(C.debugName ++ "ContextConsumer");
-    let make = (~selector: C.t => ConsumerConfig.t, ~shouldUpdate=?, ~render, _children) => {
+    let component = ReasonReact.reducerComponentWithRetainedProps(C.debugName ++ "ContextConsumer");
+    let make = (~pure=true, ~selector: C.t => ConsumerConfig.t, ~shouldUpdate=?, ~render, _children) => {
       ...component,
+      retainedProps: render,
       initialState: () => selector(state^),
       shouldUpdate: ({oldSelf, newSelf}) =>
-        switch (shouldUpdate) {
-        | None => true
-        | Some(shouldUpdate) => shouldUpdate(oldSelf.state, newSelf.state)
+        switch (pure, shouldUpdate) {
+        | (true, None) => true
+        | (true, Some(shouldUpdate)) => shouldUpdate(oldSelf.state, newSelf.state)
+        | (false, None) => oldSelf.retainedProps !== newSelf.retainedProps
+        | (false, Some(shouldUpdate)) =>
+          oldSelf.retainedProps !== newSelf.retainedProps || shouldUpdate(oldSelf.state, newSelf.state)
         },
       reducer: (action, _state) =>
         switch (action) {

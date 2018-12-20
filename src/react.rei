@@ -72,18 +72,16 @@ let metaEqual: (meta, meta) => bool;
 let metaNotEqual: (meta, meta) => bool;
 let createMeta: (Helper.field('a, 'b, 'c, 'd), ReasonForm.Form.form('e)) => meta;
 
-module type WithFormMeta = {
-  let make:
-    (~render: formMeta => ReasonReact.reactElement, 'a) =>
-    ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
-};
-
 module type S = {
   type values;
   type form = Form.form(values);
   module Context: React_context.Context with type context := form;
 
-  module WithFormMeta: WithFormMeta;
+  module WithFormMeta: {
+    let make:
+      (~pure: bool=?, ~render: formMeta => ReasonReact.reactElement, _) =>
+      ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
+  };
 
   type action;
   let make:
@@ -104,6 +102,7 @@ module WithField:
    {
     let make:
       (
+        ~pure: bool=?,
         ~field: ReasonForm.Field.t(React.values, Config.t),
         ~render: withField(React.values, Config.t) => ReasonReact.reactElement,
         'a
@@ -116,6 +115,7 @@ module WithFieldList:
    {
     let make:
       (
+        ~pure: bool=?,
         ~field: ReasonForm.FieldList.t(React.values, 'a, Row.t),
         ~render: withFieldList(React.values, 'a, Row.t) => ReasonReact.reactElement,
         'b
@@ -128,6 +128,7 @@ module WithFieldObject:
    {
     let make:
       (
+        ~pure: bool=?,
         ~field: ReasonForm.FieldObject.t('a, 'b, 'c),
         ~render: withFieldObject('a, 'b, 'c) => ReasonReact.reactElement,
         'd

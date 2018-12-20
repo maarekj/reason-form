@@ -89,19 +89,17 @@ let createMeta = (field, form) => {
   errors: Helper.getErrors(field, form),
 };
 
-module type WithFormMeta = {
-  let make:
-    (~render: formMeta => ReasonReact.reactElement, _) =>
-    ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
-};
-
 module type S = {
   type values;
   type form = Form.form(values);
 
   module Context: React_context.Context with type context := form;
 
-  module WithFormMeta: WithFormMeta;
+  module WithFormMeta: {
+    let make:
+      (~pure: bool=?, ~render: formMeta => ReasonReact.reactElement, _) =>
+      ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
+  };
 
   type action;
   let make:
@@ -126,15 +124,14 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
       let value = FormConfig.initialForm;
     });
 
-  module WithFormMeta: WithFormMeta = {
+  module WithFormMeta = {
     module Consumer =
       Context.CreateConsumer({
-        type context = form;
         type t = formMeta;
       });
 
     let component = ReasonReact.statelessComponent("");
-    let make = (~render, _) => {
+    let make = (~pure=true, ~render, _) => {
       ...component,
       render: _ => {
         let selector = form => {
@@ -149,7 +146,7 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
           nbSubmits: Form.getNbSubmits(form),
           isSubmitSuccess: Form.isSubmitSuccess(form),
         };
-        <Consumer selector shouldUpdate={(_, _) => true} render />;
+        <Consumer pure selector shouldUpdate={(_, _) => true} render />;
       },
     };
   };
@@ -203,18 +200,18 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
 module WithField = (React: S, Config: SType) => {
   module Consumer =
     React.Context.CreateConsumer({
-      type context = React.form;
       type t = (meta, Config.t);
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~field: Field.t(_, _), ~render, _) => {
+  let make = (~pure=true, ~field: Field.t(_, _), ~render, _) => {
     ...component,
     render: _ => {
       let selector = form => (createMeta(`field(field), form), field.getValue(Form.getValues(form)));
       <Consumer
+        pure
         selector
-        shouldUpdate=(!=)
+        shouldUpdate={(a, b) => a != b}
         render={
           ((meta, value)) =>
             render({
@@ -240,12 +237,11 @@ module WithField = (React: S, Config: SType) => {
 module WithFieldList = (React: S, Row: SType) => {
   module Consumer =
     React.Context.CreateConsumer({
-      type context = React.form;
       type t = (meta, int, list(Row.t));
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~field: FieldList.t(_, _, _), ~render, _) => {
+  let make = (~pure=true, ~field: FieldList.t(_, _, _), ~render, _) => {
     ...component,
     render: _ => {
       let selector = form => {
@@ -254,6 +250,7 @@ module WithFieldList = (React: S, Row: SType) => {
         (meta, field.count(values), field.getRows(values));
       };
       <Consumer
+        pure
         selector
         shouldUpdate={((aMeta, aCount, _), (bMeta, bCount, _)) => aCount != bCount || metaNotEqual(aMeta, bMeta)}
         render={
@@ -302,16 +299,16 @@ module WithFieldList = (React: S, Row: SType) => {
 module WithFieldObject = (React: S) => {
   module Consumer =
     React.Context.CreateConsumer({
-      type context = React.form;
       type t = meta;
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~field, ~render, _) => {
+  let make = (~pure=true, ~field, ~render, _) => {
     ...component,
     render: _ => {
       let selector = form => createMeta(`obj(field), form);
       <Consumer
+        pure
         selector
         shouldUpdate=metaNotEqual
         render={

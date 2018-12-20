@@ -1,10 +1,11 @@
 module FieldErrors = {
   let component = ReasonReact.statelessComponent("FieldErrors");
-  let make = (~meta: React.meta, ~reactForm: (module React.S), _children) => {
+  let make = (~pure=true, ~meta: React.meta, ~reactForm: (module React.S), _children) => {
     ...component,
     render: _ => {
       let (module ReactForm) = reactForm;
       <ReactForm.WithFormMeta
+        pure
         render={
           ({nbSubmits}) =>
             (nbSubmits > 0 || meta.isDirty) && meta.errors != [] ?
@@ -20,11 +21,12 @@ module FieldErrors = {
 
 module FormErrors = {
   let component = ReasonReact.statelessComponent("FormErrors");
-  let make = (~reactForm: (module React.S), _children) => {
+  let make = (~pure=true, ~reactForm: (module React.S), _children) => {
     ...component,
     render: _ => {
       let (module ReactForm) = reactForm;
       <ReactForm.WithFormMeta
+        pure
         render={
           ({nbSubmits, hasRootErrors, hasSubmitErrors, rootErrors, submitErrors}) =>
             nbSubmits > 0 && (hasRootErrors || hasSubmitErrors) ?
@@ -43,6 +45,7 @@ module Input = {
   let component = ReasonReact.statelessComponent("Input");
   let make =
       (
+        ~pure=true,
         ~reactForm: (module React.S),
         ~dispatch,
         ~type_="text",
@@ -56,7 +59,9 @@ module Input = {
     render: _ => {
       let (module ReactForm) = reactForm;
       let {React.meta, value, actions} = withField;
+      Js.log("renderInput: " ++ meta.key);
       <ReactForm.WithFormMeta
+        pure
         render={
           ({nbSubmits}) =>
             <input
@@ -80,11 +85,12 @@ module Input = {
 
 module SubmitButton = {
   let component = ReasonReact.statelessComponent("SubmitButton");
-  let make = (~reactForm: (module React.S), ~text, ~submittingText, _children) => {
+  let make = (~pure=true, ~reactForm: (module React.S), ~text, ~submittingText, _children) => {
     ...component,
     render: _ => {
       let (module ReactForm) = reactForm;
       <ReactForm.WithFormMeta
+        pure
         render={
           ({isSubmitting, hasErrors}) =>
             <button type_="submit" className={"btn btn-primary " ++ (hasErrors || isSubmitting ? "disabled" : "")}>
@@ -98,11 +104,12 @@ module SubmitButton = {
 
 module ResetButton = {
   let component = ReasonReact.statelessComponent("ResetButton");
-  let make = (~reactForm: (module React.S), ~dispatch, ~initialForm, ~text, _children) => {
+  let make = (~pure=true, ~reactForm: (module React.S), ~dispatch, ~initialForm, ~text, _children) => {
     ...component,
     render: _ => {
       let (module ReactForm) = reactForm;
       <ReactForm.WithFormMeta
+        pure
         render={
           ({isSubmitting}) =>
             <button
@@ -125,6 +132,7 @@ module Row = {
   let component = ReasonReact.statelessComponent("Row");
   let make =
       (
+        ~pure=true,
         ~reactForm: (module React.S),
         ~label,
         ~className="form-group",
@@ -139,7 +147,7 @@ module Row = {
       <div className>
         <label> {ReasonReact.string(label)} </label>
         input
-        <FieldErrors meta={withField.meta} reactForm />
+        <FieldErrors pure meta={withField.meta} reactForm />
       </div>;
     },
   };
@@ -149,6 +157,7 @@ module Obj = {
   let component = ReasonReact.statelessComponent("Object");
   let make =
       (
+        ~pure=true,
         ~reactForm: (module React.S),
         ~label,
         ~className="form-group",
@@ -163,7 +172,7 @@ module Obj = {
       <div className>
         <label> {ReasonReact.string(label)} </label>
         input
-        <FieldErrors meta={withField.meta} reactForm />
+        <FieldErrors pure meta={withField.meta} reactForm />
       </div>;
     },
   };
@@ -173,6 +182,7 @@ module List = {
   let component = ReasonReact.statelessComponent("List");
   let make =
       (
+        ~pure=true,
         ~reactForm: (module React.S),
         ~onAdd,
         ~onRemove,
@@ -209,7 +219,7 @@ module List = {
             |> ReasonReact.array
           }
         </ul>
-        <FieldErrors reactForm meta={withField.meta} />
+        <FieldErrors pure reactForm meta={withField.meta} />
         <button
           className="btn btn-secondary"
           onClick={
