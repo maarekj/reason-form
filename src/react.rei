@@ -87,6 +87,19 @@ module type S = {
       ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
   };
 
+  module WithForm: {
+    let make:
+      (
+        ~form: Form.form(values),
+        ~onChange: (form => form) => unit,
+        ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
+                   Js.Promise.t(Belt.Result.t('a, string)),
+        ~render: (~handleSubmit: unit => unit) => ReasonReact.reactElement,
+        array(ReasonReact.reactElement)
+      ) =>
+      ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
+  };
+
   module WithFormContainer: {
     type action;
     let make:
