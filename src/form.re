@@ -25,6 +25,32 @@ type form('a) = {
   values: 'a,
 };
 
+module Eq = {
+  let metaField = (a: metaField, b: metaField) =>
+    a === b || a.focus == b.focus && a.dirty == b.dirty && a.errors == b.errors;
+  let metaFields = (a: metaFields, b: metaFields) => a === b || SMap.eq(a, b, metaField);
+  let form = (a: form('a), b: form('a)) =>
+    a === b
+    || metaFields(a.fields, b.fields)
+    && a.rootErrors == b.rootErrors
+    && a.submitErrors == b.submitErrors
+    && a.submitSuccess == b.submitSuccess
+    && a.onValidate === b.onValidate
+    && a.onBlur === b.onBlur
+    && a.onFocus === b.onFocus
+    && a.onChangeValue === b.onChangeValue
+    && a.submitting == b.submitting
+    && a.nbSubmits == b.nbSubmits
+    && a.initialValues === b.initialValues
+    && a.values === b.values;
+};
+
+let listIsEmpty = l =>
+  switch (l) {
+  | [] => true
+  | _ => false
+  };
+
 let initializeForm =
     (
       ~initialValues,
@@ -53,22 +79,33 @@ let initializeForm =
   form |> onValidate;
 };
 
-let mapFields = (form, f) => {...form, fields: f(form.fields)};
+let mapFields = (form, f) => {
+  let fields = f(form.fields);
+  {...form, fields};
+};
 
 let mapField = (form, f, key) =>
   mapFields(
     form,
     fields => {
-      let field = SMap.get(fields, key) |> Belt.Option.getWithDefault(_, emptyField);
-      SMap.set(fields, key, f(field));
+      let field = fields->SMap.get(key)->Belt.Option.getWithDefault(emptyField);
+      let newField = f(field);
+      SMap.set(fields, key, newField);
     },
   );
 
 let getField = (key, form) => SMap.get(form.fields, key) |> Belt.Option.getWithDefault(_, emptyField);
 
-let focus = (key, form) => mapField(form, field => {...field, focus: true}, key) |> form.onFocus(key);
+let focus = (key, form) =>
+  mapField(form, field => field.focus == true ? field : {...field, focus: true}, key) |> form.onFocus(key);
 
-let blur = (key, form) => mapField(form, field => {...field, focus: false, dirty: true}, key) |> form.onBlur(key);
+let blur = (key, form) =>
+  mapField(
+    form,
+    field => field.focus == false && field.dirty == true ? field : {...field, focus: false, dirty: true},
+    key,
+  )
+  |> form.onBlur(key);
 
 let addRootError = (error, form) => {...form, rootErrors: [error, ...form.rootErrors]};
 
@@ -76,11 +113,12 @@ let addSubmitError = (error, form) => {...form, submitErrors: [error, ...form.su
 
 let addError = (key, error, form) => mapField(form, field => {...field, errors: [error, ...field.errors]}, key);
 
-let clearErrors = (key, form) => mapField(form, field => {...field, errors: []}, key);
+let clearErrors = (key, form) =>
+  mapField(form, field => listIsEmpty(field.errors) ? field : {...field, errors: []}, key);
 
-let clearRootErrors = form => {...form, rootErrors: []};
+let clearRootErrors = form => listIsEmpty(form.rootErrors) ? form : {...form, rootErrors: []};
 
-let clearSubmitErrors = form => {...form, submitErrors: []};
+let clearSubmitErrors = form => listIsEmpty(form.submitErrors) ? form : {...form, submitErrors: []};
 
 let clearAllFieldsErrors = form =>
   mapFields(
@@ -93,8 +131,10 @@ let clearAllFieldsErrors = form =>
         (fields, key) => {
           let field = SMap.get(fields, key);
           field
-          |> Belt.Option.map(_, field => SMap.set(fields, key, {...field, errors: []}))
-          |> Belt.Option.getWithDefault(_, fields);
+          ->Belt.Option.map(field =>
+              listIsEmpty(field.errors) ? fields : fields->SMap.set(key, {...field, errors: []})
+            )
+          ->Belt.Option.getWithDefault(fields);
         },
       );
     },
@@ -102,7 +142,11 @@ let clearAllFieldsErrors = form =>
 
 let changeValues = (keys, values, form) => {
   let form = {...form, values};
-  List.fold_left((form, key) => mapField(form, field => {...field, dirty: true}, key), form, keys)
+  List.fold_left(
+    (form, key) => mapField(form, field => field.dirty == true ? field : {...field, dirty: true}, key),
+    form,
+    keys,
+  )
   |> form.onChangeValue
   |> clearRootErrors
   |> clearAllFieldsErrors
@@ -140,9 +184,9 @@ let formHasErrors = form => formHasRootErrors(form) || formHasFieldErrors(form);
 
 let startSubmit = form => {...form, submitting: true, nbSubmits: form.nbSubmits + 1};
 
-let stopSubmit = form => {...form, submitting: false};
+let stopSubmit = form => form.submitting == false ? form : {...form, submitting: false};
 
-let submitSuccess = form => {...form, submitSuccess: true};
+let submitSuccess = form => form.submitSuccess == true ? form : {...form, submitSuccess: true};
 
 let isSubmitSuccess = form => form.submitSuccess;
 

@@ -70,6 +70,20 @@ type withFieldObject('values, 'value, 'fields) = {
   actions: fieldAction('values, 'value),
 };
 
+let formMetaEqual = (a: formMeta, b: formMeta) =>
+  a.isDirty == b.isDirty
+  && a.hasRootErrors == b.hasRootErrors
+  && a.rootErrors == b.rootErrors
+  && a.hasSubmitErrors == b.hasSubmitErrors
+  && a.submitErrors == b.submitErrors
+  && a.hasFieldErrors == b.hasFieldErrors
+  && a.hasErrors == b.hasErrors
+  && a.isSubmitting == b.isSubmitting
+  && a.nbSubmits == b.nbSubmits
+  && a.isSubmitSuccess == b.isSubmitSuccess;
+
+let formMetaNotEqual = (a, b) => !formMetaEqual(a, b);
+
 let metaEqual = (a: meta, b: meta) =>
   a.key == b.key
   && a.hasFocus == b.hasFocus
@@ -78,7 +92,7 @@ let metaEqual = (a: meta, b: meta) =>
   && a.hasError == b.hasError
   && a.errors == b.errors;
 
-let metaNotEqual = (a: meta, b: meta) => !metaEqual(a, b);
+let metaNotEqual = (a, b) => !metaEqual(a, b);
 
 let createMeta = (field, form) => {
   key: Helper.key(field),
@@ -101,16 +115,18 @@ module type S = {
       ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
   };
 
-  type action;
-  let make:
-    (
-      ~initialForm: Form.form(values),
-      ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
-                 Js.Promise.t(Belt.Result.t('a, string)),
-      ~render: (~dispatch: (form => form) => unit, ~handleSubmit: unit => unit) => ReasonReact.reactElement,
-      array(ReasonReact.reactElement)
-    ) =>
-    ReasonReact.component(form, ReasonReact.noRetainedProps, action);
+  module WithFormContainer: {
+    type action;
+    let make:
+      (
+        ~initialForm: Form.form(values),
+        ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
+                   Js.Promise.t(Belt.Result.t('a, string)),
+        ~render: (~dispatch: (form => form) => unit, ~handleSubmit: unit => unit) => ReasonReact.reactElement,
+        array(ReasonReact.reactElement)
+      ) =>
+      ReasonReact.component(form, ReasonReact.noRetainedProps, action);
+  };
 };
 
 module Make = (FormConfig: Config) : (S with type values = FormConfig.values) => {
@@ -124,6 +140,66 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
       let value = FormConfig.initialForm;
     });
 
+  module WithForm = {
+    let component = ReasonReact.statelessComponent("WithFormControlled");
+    let make = (~form: form, ~onChange, ~onSubmit, ~render, _children) => {
+      ...component,
+      render: _ => {
+        let handleSubmit = () => {
+          onChange(Form.startSubmit);
+          onChange(Form.clearSubmitErrors);
+
+          if (Form.formHasErrors(form)) {
+            onChange(Form.stopSubmit);
+          } else {
+            onSubmit(~dispatch=onChange, ~form)
+            |> Js.Promise.then_(value =>
+                 switch (value) {
+                 | Belt.Result.Ok(_) =>
+                   onChange(Form.submitSuccess);
+                   onChange(Form.stopSubmit);
+                   Js.Promise.resolve();
+                 | Error(error) =>
+                   onChange(Form.addSubmitError(error));
+                   onChange(Form.stopSubmit);
+                   Js.Promise.resolve();
+                 }
+               )
+            |> ignore;
+          };
+        };
+        <Context.Provider value=form> {render(~handleSubmit)} </Context.Provider>;
+      },
+    };
+  };
+
+  module WithFormContainer = {
+    type state = form;
+    type action =
+      | Dispatch(form => form);
+
+    let component = ReasonReact.reducerComponent("ReactForm");
+    let make = (~initialForm: form, ~onSubmit, ~render, _children) => {
+      ...component,
+      initialState: () => initialForm,
+      reducer: (action: action, state: state) =>
+        switch (action) {
+        | Dispatch(action) => Update(action(state))
+        },
+      shouldUpdate: ({oldSelf, newSelf}) => !Form.Eq.form(oldSelf.state, newSelf.state),
+      render: ({state, send}) => {
+        let dispatch = action => send(Dispatch(action));
+
+        <WithForm
+          form=state
+          onChange=dispatch
+          onSubmit
+          render={(~handleSubmit) => render(~dispatch, ~handleSubmit)}
+        />;
+      },
+    };
+  };
+
   module WithFormMeta = {
     module Consumer =
       Context.CreateConsumer({
@@ -131,69 +207,31 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
       });
 
     let component = ReasonReact.statelessComponent("");
-    let make = (~pure=true, ~render, _) => {
+    let make = (~pure=?, ~render, _) => {
       ...component,
       render: _ => {
-        let selector = form => {
-          isDirty: Form.formIsDirty(form),
-          hasRootErrors: Form.formHasRootErrors(form),
-          rootErrors: Form.getRootErrors(form),
-          hasSubmitErrors: Form.formHasSubmitErrors(form),
-          submitErrors: Form.getSubmitErrors(form),
-          hasFieldErrors: Form.formHasFieldErrors(form),
-          hasErrors: Form.formHasErrors(form),
-          isSubmitting: Form.isSubmitting(form),
-          nbSubmits: Form.getNbSubmits(form),
-          isSubmitSuccess: Form.isSubmitSuccess(form),
+        let selector = (form, prevSelected): formMeta => {
+          let newSelected = {
+            isDirty: Form.formIsDirty(form),
+            hasRootErrors: Form.formHasRootErrors(form),
+            rootErrors: Form.getRootErrors(form),
+            hasSubmitErrors: Form.formHasSubmitErrors(form),
+            submitErrors: Form.getSubmitErrors(form),
+            hasFieldErrors: Form.formHasFieldErrors(form),
+            hasErrors: Form.formHasErrors(form),
+            isSubmitting: Form.isSubmitting(form),
+            nbSubmits: Form.getNbSubmits(form),
+            isSubmitSuccess: Form.isSubmitSuccess(form),
+          };
+
+          switch (prevSelected) {
+          | None => newSelected
+          | Some(prev) => formMetaEqual(prev, newSelected) ? prev : newSelected
+          };
         };
-        <Consumer pure selector shouldUpdate={(_, _) => true} render />;
+        <Consumer ?pure selector render />;
       },
     };
-  };
-
-  type state = form;
-  type action =
-    | Dispatch(form => form)
-    | GetForm(form => unit);
-
-  let component = ReasonReact.reducerComponent("ReactForm");
-  let make = (~initialForm: form, ~onSubmit, ~render, _children) => {
-    ...component,
-    initialState: () => initialForm,
-    reducer: (action: action, state: state) =>
-      switch (action) {
-      | Dispatch(action) => Update(action(state))
-      | GetForm(callback) => SideEffects((({state}) => callback(state)))
-      },
-    render: ({state, send}) => {
-      let dispatch = action => send(Dispatch(action));
-      let getForm = callback => send(GetForm(callback));
-      let handleSubmit = () => {
-        dispatch(Form.startSubmit);
-        dispatch(Form.clearSubmitErrors);
-        getForm(form =>
-          if (Form.formHasErrors(form)) {
-            dispatch(Form.stopSubmit);
-          } else {
-            onSubmit(~dispatch, ~form)
-            |> Js.Promise.then_(value =>
-                 switch (value) {
-                 | Belt.Result.Ok(_) =>
-                   dispatch(Form.submitSuccess);
-                   dispatch(Form.stopSubmit);
-                   Js.Promise.resolve();
-                 | Error(error) =>
-                   dispatch(Form.addSubmitError(error));
-                   dispatch(Form.stopSubmit);
-                   Js.Promise.resolve();
-                 }
-               )
-            |> ignore;
-          }
-        );
-      };
-      <Context.Provider value=state> ...{render(~dispatch, ~handleSubmit)} </Context.Provider>;
-    },
   };
 };
 
@@ -204,14 +242,20 @@ module WithField = (React: S, Config: SType) => {
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~pure=true, ~field: Field.t(_, _), ~render, _) => {
+  let make = (~pure=?, ~field: Field.t(_, _), ~render, _) => {
     ...component,
     render: _ => {
-      let selector = form => (createMeta(`field(field), form), field.getValue(Form.getValues(form)));
+      let selector = (form, prev) => {
+        let (newMeta, newValue) = (createMeta(`field(field), form), field.getValue(Form.getValues(form)));
+        switch (prev) {
+        | None => (newMeta, newValue)
+        | Some((oldMeta, oldValue) as prev) =>
+          oldValue === newValue && metaEqual(oldMeta, newMeta) ? prev : (newMeta, newValue)
+        };
+      };
       <Consumer
-        pure
+        ?pure
         selector
-        shouldUpdate={(a, b) => a != b}
         render={
           ((meta, value)) =>
             render({
@@ -241,18 +285,25 @@ module WithFieldList = (React: S, Row: SType) => {
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~pure=true, ~field: FieldList.t(_, _, _), ~render, _) => {
+  let make = (~pure=?, ~field: FieldList.t(_, _, _), ~render, _) => {
     ...component,
     render: _ => {
-      let selector = form => {
-        let meta = createMeta(`list(field), form);
-        let values = Form.getValues(form);
-        (meta, field.count(values), field.getRows(values));
+      let selector = (form, prev) => {
+        let newValues = Form.getValues(form);
+        let (newMeta, newCount, newRows) = (
+          createMeta(`list(field), form),
+          field.count(newValues),
+          field.getRows(newValues),
+        );
+        switch (prev) {
+        | None => (newMeta, newCount, newRows)
+        | Some((oldMeta, oldCount, _oldRows) as prev) =>
+          oldCount == newCount && metaEqual(oldMeta, newMeta) ? prev : (newMeta, newCount, newRows)
+        };
       };
       <Consumer
-        pure
+        ?pure
         selector
-        shouldUpdate={((aMeta, aCount, _), (bMeta, bCount, _)) => aCount != bCount || metaNotEqual(aMeta, bMeta)}
         render={
           ((meta, count, rows)) =>
             render({
@@ -303,14 +354,19 @@ module WithFieldObject = (React: S) => {
     });
 
   let component = ReasonReact.statelessComponent("");
-  let make = (~pure=true, ~field, ~render, _) => {
+  let make = (~pure=?, ~field, ~render, _) => {
     ...component,
     render: _ => {
-      let selector = form => createMeta(`obj(field), form);
+      let selector = (form, prev) => {
+        let newMeta = createMeta(`obj(field), form);
+        switch (prev) {
+        | None => newMeta
+        | Some(prev) => metaEqual(prev, newMeta) ? prev : newMeta
+        };
+      };
       <Consumer
-        pure
+        ?pure
         selector
-        shouldUpdate=metaNotEqual
         render={
           meta =>
             render({

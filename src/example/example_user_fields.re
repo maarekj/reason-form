@@ -20,25 +20,25 @@ let lastname =
   Field.createField(
     ~key="lastname",
     ~getValue=values => values.Value.lastname,
-    ~setValue=(value, values) => {...values, lastname: value},
+    ~setValue=(value, values) => values.lastname == value ? values : {...values, lastname: value},
   );
 let firstname =
   Field.createField(
     ~key="firstname",
     ~getValue=values => values.Value.firstname,
-    ~setValue=(value, values) => {...values, firstname: value},
+    ~setValue=(value, values) => values.firstname == value ? values : {...values, firstname: value},
   );
 let username =
   Field.createField(
     ~key="username",
     ~getValue=values => values.Value.username,
-    ~setValue=(value, values) => {...values, username: value},
+    ~setValue=(value, values) => values.username == value ? values : {...values, username: value},
   );
 let age =
   Field.createField(
     ~key="age",
     ~getValue=values => values.Value.age,
-    ~setValue=(value, values) => {...values, age: value},
+    ~setValue=(value, values) => values.age == value ? values : {...values, age: value},
   );
 let tags =
   FieldList.createField(

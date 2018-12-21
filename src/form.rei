@@ -17,9 +17,17 @@ let initializeForm:
   ) =>
   form('a);
 
+module Eq: {
+  let metaField: (metaField, metaField) => bool;
+  let metaFields: (metaFields, metaFields) => bool;
+  let form: (form('a), form('a)) => bool;
+};
+
 let mapFields: (form('a), metaFields => metaFields) => form('a);
 
 let mapField: (form('a), metaField => metaField, string) => form('a);
+
+let getField: (string, form('a)) => metaField;
 
 let focus: (string, form('a)) => form('a);
 

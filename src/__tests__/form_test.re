@@ -207,6 +207,8 @@ let changeValue = (field: Field.t('a, 'b), value: 'b, form: Form.form('a)) => {
 };
 
 let testEqual = (expected, value, ()) => ExpectJs.(expect(value) |> toEqual(expected));
+let testTrue = (value, ()) => ExpectJs.(expect(value) |> toBeTruthy);
+let testBe = (expected, value, ()) => ExpectJs.(expect(value) |> toBe(expected));
 let testList = (expected, value) => testEqual(expected |> Belt.List.toArray, value |> Belt.List.toArray);
 let testOptionString = (expected, value, ()) =>
   ExpectJs.(expect(value |> Belt.Option.getWithDefault(_, "--None--")) |> toEqual(expected));
@@ -324,6 +326,34 @@ describe("#user form", () => {
       ("tags get errors", testList([], Helper.getErrors(`list(User.tags), form))),
       ("new value of tags", testList(["tag0", "tag1", "tag2", "tag3", "tag4"], Form.getValues(form).tags)),
       ("tags count", testEqual(5, User.tags.count(Form.getValues(form)))),
+    ],
+  );
+
+  let form = User.initializeForm();
+  let form1 =
+    form
+    |> Helper.focus(`field(User.lastname))
+    |> changeValue(User.lastname, Some("Maarek"))
+    |> Helper.blur(`field(User.lastname));
+  let form2 =
+    form1
+    |> Helper.focus(`field(User.lastname))
+    |> changeValue(User.lastname, Some("Maarek"))
+    |> Helper.blur(`field(User.lastname));
+  let form3 =
+    form2
+    |> Helper.focus(`field(User.lastname))
+    |> changeValue(User.lastname, Some("Maarek"))
+    |> Helper.blur(`field(User.lastname));
+  testMany(
+    "test physic equal is respected",
+    [
+      (
+        "meta field after change value",
+        testTrue(
+          Form.Eq.metaField(Form.getField(User.lastname.key, form2), Form.getField(User.lastname.key, form3)),
+        ),
+      ),
     ],
   );
 });

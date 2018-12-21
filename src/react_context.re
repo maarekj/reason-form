@@ -12,13 +12,7 @@ module type Consumer = {
   type action =
     | ChangeState(context);
   let make:
-    (
-      ~pure: bool=?,
-      ~selector: context => t,
-      ~shouldUpdate: (t, t) => bool=?,
-      ~render: t => ReasonReact.reactElement,
-      _
-    ) =>
+    (~pure: bool=?, ~selector: (context, option(t)) => t, ~render: t => ReasonReact.reactElement, _) =>
     ReasonReact.component(t, t => ReasonReact.reactElement, action);
 };
 
@@ -73,21 +67,23 @@ module CreateContext = (C: ContextConfig) : (Context with type context = C.t) =>
     type action =
       | ChangeState(C.t);
     let component = ReasonReact.reducerComponentWithRetainedProps(C.debugName ++ "ContextConsumer");
-    let make = (~pure=true, ~selector: C.t => ConsumerConfig.t, ~shouldUpdate=?, ~render, _children) => {
+    let make =
+        (
+          ~pure=false,
+          ~selector: (C.t, option(ConsumerConfig.t)) => ConsumerConfig.t,
+          ~render: ConsumerConfig.t => ReasonReact.reactElement,
+          _children,
+        ) => {
       ...component,
       retainedProps: render,
-      initialState: () => selector(state^),
+      initialState: () => selector(state^, None),
       shouldUpdate: ({oldSelf, newSelf}) =>
-        switch (pure, shouldUpdate) {
-        | (true, None) => true
-        | (true, Some(shouldUpdate)) => shouldUpdate(oldSelf.state, newSelf.state)
-        | (false, None) => oldSelf.retainedProps !== newSelf.retainedProps
-        | (false, Some(shouldUpdate)) =>
-          oldSelf.retainedProps !== newSelf.retainedProps || shouldUpdate(oldSelf.state, newSelf.state)
-        },
-      reducer: (action, _state) =>
+        pure == true ?
+          oldSelf.state !== newSelf.state :
+          oldSelf.retainedProps !== newSelf.retainedProps || oldSelf.state !== newSelf.state,
+      reducer: (action, oldSelected) =>
         switch (action) {
-        | ChangeState(newState) => ReasonReact.Update(selector(newState))
+        | ChangeState(newState) => ReasonReact.Update(selector(newState, Some(oldSelected)))
         },
       didMount: ({send, onUnmount}) => (newState => send(ChangeState(newState))) |> addSubscription |> onUnmount,
       render: ({state}) => render(state),

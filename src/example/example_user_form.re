@@ -10,18 +10,7 @@ module ReactForm = {
   });
 };
 
-module Int = {
-  type t = int;
-};
-module WithOptionStringField = React.WithField(ReactForm, (React.MakeOption(String)));
-module WithStringField = React.WithField(ReactForm, String);
-module WithIntField = React.WithField(ReactForm, Int);
-module WithFieldObject = React.WithFieldObject(ReactForm);
-module WithListAddress = React.WithFieldList(ReactForm, (Address.Fields(User.Value)));
-module WithListString = React.WithFieldList(ReactForm, (Field.MakeFieldType(User.Value, String)));
-
-module RenderHelper = Example_render_helper;
-module AddressComponent = Example_address_form.Make(ReactForm);
+module RenderForm = Example_user_render_form.Make(ReactForm);
 
 let delay = ms => {
   let unit = ();
@@ -42,10 +31,20 @@ let make = _children => {
     switch (action) {
     | Inc => Update(state + 1)
     },
-  render: ({state, send}) =>
+  render: ({state, send}) => {
+    Js.log("root render");
     <div>
       <p> {ReasonReact.string(string_of_int(state))} </p>
-      <ReactForm
+      <button
+        onClick={
+          event => {
+            event->ReactEvent.Synthetic.preventDefault;
+            send(Inc);
+          }
+        }>
+        {ReasonReact.string("increment")}
+      </button>
+      <ReactForm.WithFormContainer
         initialForm
         onSubmit={
           (~dispatch as _, ~form) => {
@@ -58,199 +57,8 @@ let make = _children => {
                });
           }
         }
-        render={
-          (~dispatch, ~handleSubmit) =>
-            <form
-              className="card"
-              onSubmit={
-                event => {
-                  event->ReactEvent.Synthetic.preventDefault;
-                  handleSubmit();
-                }
-              }
-              style={
-                ReactDOMRe.Style.make(
-                  ~width="600px",
-                  ~marginTop="60px",
-                  ~marginBottom="60px",
-                  ~marginLeft="auto",
-                  ~marginRight="auto",
-                  (),
-                )
-              }>
-              <div className="card-body">
-                <p> {ReasonReact.string(string_of_int(state))} </p>
-                <WithOptionStringField
-                  field=User.lastname
-                  pure=false
-                  render={
-                    withField =>
-                      <RenderHelper.Row
-                        reactForm
-                        withField
-                        label={js|Lastname|js}
-                        input={
-                          <div>
-                            <p> {ReasonReact.string(string_of_int(state))} </p>
-                            <button
-                              onClick={
-                                event => {
-                                  event->ReactEvent.Synthetic.preventDefault;
-                                  send(Inc);
-                                }
-                              }>
-                              {ReasonReact.string("increment")}
-                            </button>
-                            <RenderHelper.Input
-                              reactForm
-                              dispatch
-                              toText={Belt.Option.getWithDefault(_, "")}
-                              fromText={v => v == "" ? None : Some(v)}
-                              withField
-                            />
-                          </div>
-                        }
-                      />
-                  }
-                />
-                <WithOptionStringField
-                  field=User.firstname
-                  render={
-                    withField =>
-                      <RenderHelper.Row
-                        reactForm
-                        withField
-                        label={js|Firstname|js}
-                        input={
-                          <RenderHelper.Input
-                            reactForm
-                            dispatch
-                            toText={Belt.Option.getWithDefault(_, "")}
-                            fromText={v => v == "" ? None : Some(v)}
-                            withField
-                          />
-                        }
-                      />
-                  }
-                />
-                <WithOptionStringField
-                  field=User.username
-                  render={
-                    withField =>
-                      <RenderHelper.Row
-                        reactForm
-                        withField
-                        label={js|Username|js}
-                        input={
-                          <RenderHelper.Input
-                            reactForm
-                            withField
-                            dispatch
-                            toText={Belt.Option.getWithDefault(_, "")}
-                            fromText={v => v == "" ? None : Some(v)}
-                          />
-                        }
-                      />
-                  }
-                />
-                <WithIntField
-                  field=User.age
-                  render={
-                    withField =>
-                      <RenderHelper.Row
-                        reactForm
-                        withField
-                        label={js|Age|js}
-                        input={
-                          <RenderHelper.Input
-                            reactForm
-                            withField
-                            dispatch
-                            toText=string_of_int
-                            fromText={
-                              v =>
-                                try (int_of_string(v)) {
-                                | Failure("int_of_string") => 0
-                                }
-                            }
-                          />
-                        }
-                      />
-                  }
-                />
-                <WithListString
-                  field=User.tags
-                  render={
-                    withField =>
-                      <RenderHelper.List
-                        reactForm
-                        withField
-                        label={js|Tags|js}
-                        onAdd={({actions: {push}}) => dispatch(push(""))}
-                        onRemove={({actions: {remove}}, i) => dispatch(remove(i))}
-                        renderInput={
-                          (~row, ~index) =>
-                            <WithStringField
-                              field=row
-                              render={
-                                withField =>
-                                  <RenderHelper.Row
-                                    reactForm
-                                    withField
-                                    label={j|Tag $(index)|j}
-                                    input={
-                                      <RenderHelper.Input
-                                        reactForm
-                                        dispatch
-                                        toText={v => v}
-                                        fromText={v => v}
-                                        withField
-                                      />
-                                    }
-                                  />
-                              }
-                            />
-                        }
-                      />
-                  }
-                />
-                <WithFieldObject
-                  field=User.mainAddress
-                  render={
-                    withField =>
-                      <RenderHelper.Obj
-                        reactForm
-                        withField
-                        label={js|Main address|js}
-                        input={<AddressComponent fields={withField.fields} dispatch />}
-                      />
-                  }
-                />
-                <WithListAddress
-                  field=User.addresses
-                  render={
-                    withField =>
-                      <RenderHelper.List
-                        reactForm
-                        withField
-                        label={js|Addresses|js}
-                        onAdd={({actions: {push}}) => dispatch(push(Address.Value.empty))}
-                        onRemove={({actions: {remove}}, i) => dispatch(remove(i))}
-                        renderInput={
-                          (~row, ~index) =>
-                            <AddressComponent title={"Address " ++ string_of_int(index)} fields=row dispatch />
-                        }
-                      />
-                  }
-                />
-                <RenderHelper.FormErrors reactForm />
-              </div>
-              <div className="card-footer">
-                <RenderHelper.SubmitButton reactForm text="Submit" submittingText="Pending..." />
-                <RenderHelper.ResetButton reactForm dispatch initialForm text="Reset" />
-              </div>
-            </form>
-        }
+        render={(~dispatch, ~handleSubmit) => <RenderForm state initialForm dispatch handleSubmit />}
       />
-    </div>,
+    </div>;
+  },
 };

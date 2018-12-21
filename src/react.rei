@@ -72,9 +72,13 @@ let metaEqual: (meta, meta) => bool;
 let metaNotEqual: (meta, meta) => bool;
 let createMeta: (Helper.field('a, 'b, 'c, 'd), ReasonForm.Form.form('e)) => meta;
 
+let formMetaEqual: (formMeta, formMeta) => bool;
+let formMetaNotEqual: (formMeta, formMeta) => bool;
+
 module type S = {
   type values;
   type form = Form.form(values);
+
   module Context: React_context.Context with type context := form;
 
   module WithFormMeta: {
@@ -83,16 +87,18 @@ module type S = {
       ReasonReact.component(ReasonReact.stateless, ReasonReact.noRetainedProps, ReasonReact.actionless);
   };
 
-  type action;
-  let make:
-    (
-      ~initialForm: Form.form(values),
-      ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
-                 Js.Promise.t(Belt.Result.t('a, string)),
-      ~render: (~dispatch: (form => form) => unit, ~handleSubmit: unit => unit) => ReasonReact.reactElement,
-      array(ReasonReact.reactElement)
-    ) =>
-    ReasonReact.component(form, ReasonReact.noRetainedProps, action);
+  module WithFormContainer: {
+    type action;
+    let make:
+      (
+        ~initialForm: Form.form(values),
+        ~onSubmit: (~dispatch: (form => form) => unit, ~form: Form.form(values)) =>
+                   Js.Promise.t(Belt.Result.t('a, string)),
+        ~render: (~dispatch: (form => form) => unit, ~handleSubmit: unit => unit) => ReasonReact.reactElement,
+        array(ReasonReact.reactElement)
+      ) =>
+      ReasonReact.component(form, ReasonReact.noRetainedProps, action);
+  };
 };
 
 module Make: (FormConfig: Config) => S with type values = FormConfig.values;
