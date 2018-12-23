@@ -199,7 +199,6 @@ module Make = (FormConfig: Config) : (S with type values = FormConfig.values) =>
         switch (action) {
         | Dispatch(action) => Update(action(state))
         },
-      shouldUpdate: ({oldSelf, newSelf}) => !Form.Eq.form(oldSelf.state, newSelf.state),
       render: ({state, send}) => {
         let dispatch = action => send(Dispatch(action));
 
