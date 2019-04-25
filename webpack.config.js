@@ -8,7 +8,7 @@ var config = {
     index: ['./lib/js/src/example/example_index.bs.js'],
   },
   output: {
-    path: path.join(__dirname, "build"),
+    path: path.join(__dirname, "public", "build"),
     filename: '[name].js',
   },
   module: {

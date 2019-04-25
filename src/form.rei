@@ -1,88 +1,88 @@
-type metaField;
+type metaField('e);
 
-type metaFields;
+type metaFields('e);
 
-type form('a);
+type form('v, 'e);
 
 let initializeForm:
   (
-    ~initialValues: 'a,
-    ~rootErrors: list(string)=?,
-    ~submitErrors: list(string)=?,
-    ~onBlur: (string, form('a)) => form('a)=?,
-    ~onFocus: (string, form('a)) => form('a)=?,
-    ~onChangeValue: form('a) => form('a)=?,
-    ~onValidate: form('a) => form('a)=?,
+    ~initialValues: 'v,
+    ~rootErrors: list('e)=?,
+    ~submitErrors: list('e)=?,
+    ~onBlur: (string, form('v, 'e)) => form('v, 'e)=?,
+    ~onFocus: (string, form('v, 'e)) => form('v, 'e)=?,
+    ~onChangeValue: form('v, 'e) => form('v, 'e)=?,
+    ~onValidate: form('v, 'e) => form('v, 'e)=?,
     unit
   ) =>
-  form('a);
+  form('v, 'e);
 
 module Eq: {
-  let metaField: (metaField, metaField) => bool;
-  let metaFields: (metaFields, metaFields) => bool;
-  let form: (form('a), form('a)) => bool;
+  let metaField: (metaField('e), metaField('e)) => bool;
+  let metaFields: (metaFields('e), metaFields('e)) => bool;
+  let form: (form('v, 'e), form('v, 'e)) => bool;
 };
 
-let mapFields: (form('a), metaFields => metaFields) => form('a);
+let mapFields: (form('v, 'e), metaFields('e) => metaFields('e)) => form('v, 'e);
 
-let mapField: (form('a), metaField => metaField, string) => form('a);
+let mapField: (form('v, 'e), metaField('e) => metaField('e), string) => form('v, 'e);
 
-let getField: (string, form('a)) => metaField;
+let getField: (string, form('v, 'e)) => metaField('e);
 
-let focus: (string, form('a)) => form('a);
+let focus: (string, form('v, 'e)) => form('v, 'e);
 
-let blur: (string, form('a)) => form('a);
+let blur: (string, form('v, 'e)) => form('v, 'e);
 
-let changeValues: (list(string), 'a, form('a)) => form('a);
+let changeValues: (list(string), 'v, form('v, 'e)) => form('v, 'e);
 
-let addRootError: (string, form('a)) => form('a);
+let addRootError: ('e, form('v, 'e)) => form('v, 'e);
 
-let addSubmitError: (string, form('a)) => form('a);
+let addSubmitError: ('e, form('v, 'e)) => form('v, 'e);
 
-let addError: (string, string, form('a)) => form('a);
+let addError: (string, 'e, form('v, 'e)) => form('v, 'e);
 
-let clearErrors: (string, form('a)) => form('a);
+let clearErrors: (string, form('v, 'e)) => form('v, 'e);
 
-let clearRootErrors: form('a) => form('a);
+let clearRootErrors: form('v, 'e) => form('v, 'e);
 
-let clearSubmitErrors: form('a) => form('a);
+let clearSubmitErrors: form('v, 'e) => form('v, 'e);
 
-let hasFocus: (string, form('a)) => bool;
+let hasFocus: (string, form('v, 'e)) => bool;
 
-let isBlur: (string, form('a)) => bool;
+let isBlur: (string, form('v, 'e)) => bool;
 
-let isDirty: (string, form('a)) => bool;
+let isDirty: (string, form('v, 'e)) => bool;
 
-let hasError: (string, form('a)) => bool;
+let hasError: (string, form('v, 'e)) => bool;
 
-let getErrors: (string, form('a)) => list(string);
+let getErrors: (string, form('v, 'e)) => list('e);
 
-let getValues: form('a) => 'a;
+let getValues: form('v, 'e) => 'v;
 
-let getInitialValues: form('a) => 'a;
+let getInitialValues: form('v, 'e) => 'v;
 
-let formIsDirty: form('a) => bool;
+let formIsDirty: form('v, 'e) => bool;
 
-let formHasRootErrors: form('a) => bool;
+let formHasRootErrors: form('v, 'e) => bool;
 
-let getRootErrors: form('a) => list(string);
+let getRootErrors: form('v, 'e) => list('e);
 
-let formHasSubmitErrors: form('a) => bool;
+let formHasSubmitErrors: form('v, 'e) => bool;
 
-let getSubmitErrors: form('a) => list(string);
+let getSubmitErrors: form('v, 'e) => list('e);
 
-let formHasFieldErrors: form('a) => bool;
+let formHasFieldErrors: form('v, 'e) => bool;
 
-let formHasErrors: form('a) => bool;
+let formHasErrors: form('v, 'e) => bool;
 
-let startSubmit: form('a) => form('a);
+let startSubmit: form('v, 'e) => form('v, 'e);
 
-let stopSubmit: form('a) => form('a);
+let stopSubmit: form('v, 'e) => form('v, 'e);
 
-let submitSuccess: form('a) => form('a);
+let submitSuccess: form('v, 'e) => form('v, 'e);
 
-let isSubmitSuccess: form('a) => bool;
+let isSubmitSuccess: form('v, 'e) => bool;
 
-let isSubmitting: form('a) => bool;
+let isSubmitting: form('v, 'e) => bool;
 
-let getNbSubmits: form('a) => int;
+let getNbSubmits: form('v, 'e) => int;

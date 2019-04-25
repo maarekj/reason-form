@@ -1,9 +1,9 @@
 let getValue = event => event->ReactEvent.Form.target##value;
 
-type dispatch('a) = (Form.form('a) => Form.form('a)) => unit;
+type dispatch('v, 'e) = (Form.form('v, 'e) => Form.form('v, 'e)) => unit;
 
 let handleFormChange =
-    (dispatch: dispatch('a), field: Field.t('values, 'value), mapper: 'b => 'value, param: 'b): unit => {
+    (dispatch: dispatch('values, 'e), field: Field.t('values, 'value), mapper: 'b => 'value, param: 'b): unit => {
   let value = mapper(param);
   dispatch(form => {
     let values = Form.getValues(form);
@@ -13,7 +13,12 @@ let handleFormChange =
 };
 
 let handleDomFormChange =
-    (dispatch: dispatch('a), field: Field.t('values, 'value), mapper: string => 'value, event: ReactEvent.Form.t)
+    (
+      dispatch: dispatch('values, 'e),
+      field: Field.t('values, 'value),
+      mapper: string => 'value,
+      event: ReactEvent.Form.t,
+    )
     : unit => {
   let value = mapper(getValue(event));
   dispatch(form => {
@@ -45,3 +50,35 @@ let isDirty = (field, form) => Form.isDirty(key(field), form);
 
 let hasError = (field, form) => Form.hasError(key(field), form);
 let getErrors = (field, form) => Form.getErrors(key(field), form);
+
+module List = {
+  let setList = (field, list, form) => {
+    let list = field.FieldList.setList(list, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+
+  let add = (field, value, form) => {
+    let list = field.FieldList.add(value, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+
+  let push = (field, value, form) => {
+    let list = field.FieldList.push(value, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+
+  let insert = (field, index, value, form) => {
+    let list = field.FieldList.insert(index, value, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+
+  let remove = (field, index, form) => {
+    let list = field.FieldList.remove(index, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+
+  let update = (field, updater, form) => {
+    let list = field.FieldList.update(updater, Form.getValues(form));
+    Form.changeValues([field.key], list, form);
+  };
+};

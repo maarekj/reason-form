@@ -1,47 +1,31 @@
-module Make = (ReactForm: React.S) => {
-  module Address = Example_address_fields;
-  module RenderHelper = Example_render_helper;
-  module WithStringField = React.WithField(ReactForm, String);
+module Render = BootstrapRender;
 
-  let reactForm: module React.S = (module ReactForm);
-
-  let component = ReasonReact.statelessComponent("UserForm");
-  let make = (~dispatch, ~fields: Address.fields(_), ~title=?, _children) => {
-    ...component,
-    render: _ =>
-      <div className="card">
-        <div className="card-body">
-          {
-            switch (title) {
-            | Some(title) => <h5 className="card-title"> {ReasonReact.string(title)} </h5>
-            | None => ReasonReact.null
-            }
-          }
-          <WithStringField
+[@react.component]
+let make = (~wrap, ~fields: Example_address_fields.fields(_), ~title=?) => {
+  <div className="card">
+    <div className="card-body">
+      {switch (title) {
+       | Some(title) => <h5 className="card-title"> {React.string(title)} </h5>
+       | None => React.null
+       }}
+      <div className="row">
+        <div className="col-sm-8">
+          <Render.Row
+            label={js|Street|js}
+            wrap
             field={fields.street}
-            render={
-              withField =>
-                <RenderHelper.Row
-                  reactForm
-                  withField
-                  label={js|Street|js}
-                  input={<RenderHelper.Input withField reactForm dispatch toText={v => v} fromText={v => v} />}
-                />
-            }
-          />
-          <WithStringField
-            field={fields.city}
-            render={
-              withField =>
-                <RenderHelper.Row
-                  reactForm
-                  withField
-                  label={js|City|js}
-                  input={<RenderHelper.Input reactForm dispatch toText={v => v} fromText={v => v} withField />}
-                />
-            }
+            input={<Render.Input wrap type_="text" field={fields.street} toText={v => v} fromText={v => v} />}
           />
         </div>
-      </div>,
-  };
+        <div className="col-sm-4">
+          <Render.Row
+            label={js|City|js}
+            wrap
+            field={fields.city}
+            input={<Render.Input wrap type_="text" field={fields.city} toText={v => v} fromText={v => v} />}
+          />
+        </div>
+      </div>
+    </div>
+  </div>;
 };

@@ -1,20 +1,48 @@
 module Address = Example_address_fields;
 
+module Gender = {
+  type t =
+    | Male
+    | Female
+    | Other;
+
+  let choices = [
+    {BootstrapRender.Choice.value: Male, string: "male", label: "Male"},
+    {value: Female, string: "female", label: "Female"},
+    {value: Other, string: "other", label: "Other"},
+  ];
+
+  let optChoices = [
+    {BootstrapRender.Choice.value: None, string: "", label: ""},
+    ...choices->Belt.List.map(choice => {...choice, value: Some(choice.value)}),
+  ];
+};
+
 module Value = {
   type t = {
     username: option(string),
     lastname: option(string),
     firstname: option(string),
+    gender: option(Gender.t),
     age: int,
     tags: list(string),
     mainAddress: option(Address.Value.t),
     addresses: list(Address.Value.t),
   };
 
-  let empty = {username: None, lastname: None, firstname: None, age: 18, tags: [], mainAddress: None, addresses: []};
+  let empty = {
+    username: None,
+    lastname: None,
+    firstname: None,
+    gender: None,
+    age: 18,
+    tags: [],
+    mainAddress: None,
+    addresses: [],
+  };
 };
 
-type form = Form.form(Value.t);
+type form = Form.form(Value.t, string);
 
 let lastname =
   Field.createField(
@@ -39,6 +67,12 @@ let age =
     ~key="age",
     ~getValue=values => values.Value.age,
     ~setValue=(value, values) => values.age == value ? values : {...values, age: value},
+  );
+let gender =
+  Field.createField(
+    ~key="gender",
+    ~getValue=values => values.Value.gender,
+    ~setValue=(value, values) => values.gender == value ? values : {...values, gender: value},
   );
 let tags =
   FieldList.createField(
@@ -103,8 +137,8 @@ let onValidate = form => {
     );
 
   let form =
-    Belt.List.size(values.addresses) < 1 ?
-      addError(`list(addresses), "Must contains one address at least.", form) : form;
+    Belt.List.size(values.addresses) < 1
+      ? addError(`list(addresses), "Must contains one address at least.", form) : form;
 
   let form =
     form

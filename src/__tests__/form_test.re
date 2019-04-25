@@ -38,7 +38,7 @@ module User = {
     addresses: list(Address.t),
   };
 
-  type form = Form.form(t);
+  type form = Form.form(t, string);
 
   let initialUser = {
     username: None,
@@ -93,11 +93,8 @@ module User = {
       ~getList=(values: t) => values.addresses,
       ~setList=(value: list(Address.t), values: t) => {...values, addresses: value},
       ~createFields=
-        ({wrapField}) => {
-          numero: wrapField(Address.numero),
-          street: wrapField(Address.street),
-          city: wrapField(Address.city),
-        },
+        ({wrapField}) =>
+          {numero: wrapField(Address.numero), street: wrapField(Address.street), city: wrapField(Address.city)},
     );
 
   let mainAddress =
@@ -106,11 +103,12 @@ module User = {
       ~getObject=values => values.mainAddress,
       ~setObject=(value, values) => {...values, mainAddress: value},
       ~createFields=
-        ({wrapField}) => {
-          numero: wrapField(Field.wrapOptionField(~field=Address.numero, ~empty=Address.empty, ())),
-          street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
-          city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
-        },
+        ({wrapField}) =>
+          {
+            numero: wrapField(Field.wrapOptionField(~field=Address.numero, ~empty=Address.empty, ())),
+            street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
+            city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
+          },
     );
 
   let onValidate = form => {
@@ -150,8 +148,8 @@ module User = {
       );
 
     let form =
-      Belt.List.size(values.addresses) < 2 ?
-        addError(`list(addresses), "Must contains one address at least.", form) : form;
+      Belt.List.size(values.addresses) < 2
+        ? addError(`list(addresses), "Must contains one address at least.", form) : form;
 
     let validateAddress = (address: Address.t, field: address, form) =>
       form
@@ -200,7 +198,7 @@ module User = {
   let initializeForm = () => Form.initializeForm(~initialValues=initialUser, ~onValidate, ());
 };
 
-let changeValue = (field: Field.t('a, 'b), value: 'b, form: Form.form('a)) => {
+let changeValue = (field: Field.t('values, 'v), value: 'v, form: Form.form('values, string)) => {
   let values = Form.getValues(form);
   let newValues = field.setValue(value, values);
   Form.changeValues([field.key], newValues, form);

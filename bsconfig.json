@@ -1,8 +1,8 @@
 {
-  "name": "reason-form",
-  "namespace": true,
+  "name": "@maarekj/reason-form",
+  "namespace": "reason-form",
   "reason": {
-    "react-jsx": 2
+    "react-jsx": 3
   },
   "refmt": 3,
   "suffix": ".bs.js",
@@ -10,7 +10,7 @@
     "reason-react"
   ],
   "bs-dev-dependencies": [
-    "bs-jest"
+    "@glennsl/bs-jest"
   ],
   "bsc-flags": [
     "-bs-super-errors"

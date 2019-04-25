@@ -1,4 +1,9 @@
-let component = ReasonReact.statelessComponent("App");
-let make = _children => {...component, render: _ => <Example_user_form />};
+module App = {
+  [@react.component]
+  let make = () => {
+    Js.log("App");
+    <Example_user_form />;
+  };
+};
 
-ReactDOMRe.renderToElementWithId(ReasonReact.element(make([||])), "app");
+ReactDOMRe.renderToElementWithId(<App />, "app");

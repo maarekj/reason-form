@@ -1,35 +1,35 @@
 module SMap = Belt.Map.String;
 
-type metaField = {
+type metaField('e) = {
   focus: bool,
   dirty: bool,
-  errors: list(string),
+  errors: list('e),
 };
 
-type metaFields = SMap.t(metaField);
+type metaFields('e) = SMap.t(metaField('e));
 
 let emptyField = {focus: false, dirty: false, errors: []};
 
-type form('a) = {
-  fields: metaFields,
-  rootErrors: list(string),
-  submitErrors: list(string),
+type form('values, 'error) = {
+  fields: metaFields('error),
+  rootErrors: list('error),
+  submitErrors: list('error),
   submitSuccess: bool,
-  onValidate: form('a) => form('a),
-  onBlur: (string, form('a)) => form('a),
-  onFocus: (string, form('a)) => form('a),
-  onChangeValue: form('a) => form('a),
+  onValidate: form('values, 'error) => form('values, 'error),
+  onBlur: (string, form('values, 'error)) => form('values, 'error),
+  onFocus: (string, form('values, 'error)) => form('values, 'error),
+  onChangeValue: form('values, 'error) => form('values, 'error),
   submitting: bool,
   nbSubmits: int,
-  initialValues: 'a,
-  values: 'a,
+  initialValues: 'values,
+  values: 'values,
 };
 
 module Eq = {
-  let metaField = (a: metaField, b: metaField) =>
+  let metaField = (a: metaField('e), b: metaField('e)) =>
     a === b || a.focus == b.focus && a.dirty == b.dirty && a.errors == b.errors;
-  let metaFields = (a: metaFields, b: metaFields) => a === b || SMap.eq(a, b, metaField);
-  let form = (a: form('a), b: form('a)) =>
+  let metaFields = (a: metaFields('e), b: metaFields('e)) => a === b || SMap.eq(a, b, metaField);
+  let form = (a: form('v, 'e), b: form('v, 'e)) =>
     a === b
     || metaFields(a.fields, b.fields)
     && a.rootErrors == b.rootErrors

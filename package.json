@@ -1,8 +1,9 @@
 {
-  "name": "reason-form",
+  "name": "@maarekj/reason-form",
+  "repository": "https://github.com/maarekj/reason-form.git",
   "private": false,
-  "version": "2.0.2",
-  "description": "",
+  "version": "3.0.0-beta.2",
+  "description": "Yet form librairie for reason and react",
   "main": "index.js",
   "scripts": {
     "test": "jest lib/js",
@@ -17,7 +18,13 @@
     "refmt": "bsrefmt -w 120 --in-place $(find src -name '*.re') $(find src -name '*.rei')",
     "prepare": "install-self-peers -- --ignore-scripts"
   },
-  "keywords": [],
+  "keywords": [
+    "reason",
+    "react",
+    "form",
+    "bs-platform",
+    "bucklescript"
+  ],
   "author": "Joseph Maarek <josephmaarek@gmail.com>",
   "license": "MIT",
   "dependencies": {},
@@ -27,20 +34,19 @@
     ]
   },
   "devDependencies": {
+    "@glennsl/bs-jest": "^0.4.8",
     "@team-griffin/install-self-peers": "^1.1.1",
     "babel-cli": "^6.26.0",
-    "babel-loader": "^7.1.4",
+    "babel-loader": "^8.0.5",
     "babel-preset-env": "^1.7.0",
-    "bs-jest": "^0.3.2",
-    "bs-platform": "^4.0.5",
-    "concurrently": "^4.0.1",
-    "webpack": "^4.17.1",
-    "webpack-cli": "^3.1.0"
+    "bs-platform": "^5.0.3",
+    "concurrently": "^4.1.0",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1"
   },
   "peerDependencies": {
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
-    "reason-react": "^0.5.3"
-  },
-  "repository": "https://github.com/maarekj/reason-form.git"
+    "reason-react": "^0.7.0"
+  }
 }

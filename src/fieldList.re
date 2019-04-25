@@ -57,22 +57,21 @@ let createField =
           ~field,
           ~getValue=user => Belt.List.getExn(getList(user), index),
           ~setValue=
-            (row, value) =>
-              getList(value) |> Belt.List.mapWithIndex(_, (i, e) => i == index ? row : e) |> setList(_, value),
+            (row, value) => getList(value)->Belt.List.mapWithIndex((i, e) => i == index ? row : e)->setList(value),
           (),
         ),
     });
   {
     key,
-    count: values => values |> getList |> Belt.List.size,
-    add: (value, values) => values |> getList |> Belt.List.add(_, value) |> setList(_, values),
-    push: (value, values) => values |> getList |> Belt.List.concat(_, [value]) |> setList(_, values),
-    insert: (index, value, values) => values |> getList |> insert(_, index, value) |> setList(_, values),
-    remove: (index, values) => values |> getList |> removeIndex(_, index) |> setList(_, values),
-    update: (updater, values) => values |> getList |> updater |> setList(_, values),
+    count: values => values->getList->Belt.List.size,
+    add: (value, values) => values->getList->Belt.List.add(value)->setList(values),
+    push: (value, values) => values->getList->Belt.List.concat([value])->setList(values),
+    insert: (index, value, values) => values->getList->insert(index, value)->setList(values),
+    remove: (index, values) => values->getList->removeIndex(index)->setList(values),
+    update: (updater, values) => values->getList->updater->setList(values),
     getList,
     setList,
     getRow,
-    getRows: values => values |> getList |> Belt.List.mapWithIndexU(_, (. index, _) => getRow(index)),
+    getRows: values => values->getList->Belt.List.mapWithIndexU((. index, _) => getRow(index)),
   };
 };
