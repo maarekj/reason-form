@@ -2,7 +2,7 @@
   "name": "@maarekj/reason-form",
   "repository": "https://github.com/maarekj/reason-form.git",
   "private": false,
-  "version": "3.0.0-beta.2",
+  "version": "3.0.0-beta.3",
   "description": "Yet form librairie for reason and react",
   "main": "index.js",
   "scripts": {
