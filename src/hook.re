@@ -1,5 +1,6 @@
 type formMeta = {
   isDirty: bool,
+  isAlreadyBlur: bool,
   hasRootErrors: bool,
   rootErrors: list(string),
   hasSubmitErrors: bool,
@@ -16,12 +17,14 @@ type meta = {
   hasFocus: bool,
   isBlur: bool,
   isDirty: bool,
+  isAlreadyBlur: bool,
   hasError: bool,
   errors: list(string),
 };
 
 let createFormMeta = form => {
   isDirty: Form.formIsDirty(form),
+  isAlreadyBlur: Form.formIsAlreadyBlur(form),
   hasRootErrors: Form.formHasRootErrors(form),
   rootErrors: Form.getRootErrors(form),
   hasSubmitErrors: Form.formHasSubmitErrors(form),
@@ -33,10 +36,18 @@ let createFormMeta = form => {
   isSubmitSuccess: Form.isSubmitSuccess(form),
 };
 
+let useListener = (wrap, createState) => {
+  let (state, setState) = React.useState(() => createState(Wrap.content(wrap)));
+  React.useEffect2(
+    () => Some(wrap->Wrap.addListener(form => setState(_ => createState(form)))),
+    (wrap, createState),
+  );
+  state;
+};
+
 let useFormMeta = wrap => {
-  let (meta, setMeta) = React.useState(() => createFormMeta(Wrap.content(wrap)));
-  React.useEffect1(() => wrap->Wrap.addListener(form => setMeta(_ => createFormMeta(form))), [|wrap|]);
-  meta;
+  let createState = createFormMeta;
+  useListener(wrap, createState);
 };
 
 let createMeta = (form, field) => {
@@ -44,48 +55,32 @@ let createMeta = (form, field) => {
   hasFocus: Helper.hasFocus(field, form),
   isBlur: Helper.isBlur(field, form),
   isDirty: Helper.isDirty(field, form),
+  isAlreadyBlur: Helper.isAlreadyBlur(field, form),
   hasError: Helper.hasError(field, form),
   errors: Helper.getErrors(field, form),
 };
 
 let useMeta = (wrap, field) => {
-  let (meta, setMeta) = React.useState(() => createMeta(Wrap.content(wrap), field));
-
-  React.useEffect2(() => wrap->Wrap.addListener(form => setMeta(_ => createMeta(form, field))), (wrap, field));
-
-  meta;
+  let createState = React.useCallback1(form => createMeta(form, field), [|field|]);
+  useListener(wrap, createState);
 };
 
 let useValue = (wrap, field: Field.t('values, 'value)) => {
-  let (value, setValue) =
-    React.useState(() => {
-      let form = Wrap.content(wrap);
-      field.getValue(Form.getValues(form));
-    });
-
-  React.useEffect2(
-    () => wrap->Wrap.addListener(form => setValue(_ => field.getValue(Form.getValues(form)))),
-    (wrap, field),
-  );
-  value;
+  let createState = React.useCallback1(form => field.getValue(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
 };
 
 let useListCount = (wrap, field) => {
-  let (count, setCount) =
-    React.useState(() => {
-      let form = Wrap.content(wrap);
-      let values = Form.getValues(form);
-      field.FieldList.count(values);
-    });
+  let createState = React.useCallback1(form => field.FieldList.count(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
+};
 
-  React.useEffect2(
-    () =>
-      wrap->Wrap.addListener(form => {
-        let values = Form.getValues(form);
-        setCount(_ => field.FieldList.count(values));
-      }),
-    (wrap, field),
-  );
+let useMapCountKeys = (wrap, field) => {
+  let createState = React.useCallback1(form => field.FieldMap.countKeys(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
+};
 
-  count;
+let useMapAllKeys = (wrap, field) => {
+  let createState = React.useCallback1(form => field.FieldMap.allKeys(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
 };

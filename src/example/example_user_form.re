@@ -2,6 +2,8 @@ module Render = BootstrapRender;
 module Fields = Example_user_fields;
 module Address = Example_address_fields;
 module AddressForm = Example_address_form;
+module MetadataForm = Example_metadata_form;
+
 let initialForm = Example_user_fields.initializeForm();
 
 let toText = a => a->Belt.Option.getWithDefault("");
@@ -106,12 +108,18 @@ let make = () => {
                       type_="text"
                       toText=string_of_int
                       fromText={v =>
-                        try (int_of_string(v)) {
-                        | Failure("int_of_string") => 0
+                        try(int_of_string(v)) {
+                        | _ => 0
                         }
                       }
                     />
                   }
+                />
+                <Render.Map
+                  wrap
+                  field=Fields.metadata
+                  label={js|Méta-données|js}
+                  renderInput={(fields, key) => <MetadataForm wrap fields title=key />}
                 />
                 <Render.List
                   wrap

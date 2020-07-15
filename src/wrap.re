@@ -29,7 +29,7 @@ let removeListener = (wrap, listener) => {
 };
 let addListener = (wrap, listener) => {
   wrap.listeners = [listener, ...wrap.listeners];
-  Some(() => removeListener(wrap, listener));
+  () => removeListener(wrap, listener);
 };
 let content = wrap => wrap.content;
 let id = wrap => wrap.id;

@@ -1,4 +1,5 @@
 module Address = Example_address_fields;
+module Metadata = Example_metadata_fields;
 
 module Gender = {
   type t =
@@ -28,6 +29,7 @@ module Value = {
     tags: list(string),
     mainAddress: option(Address.Value.t),
     addresses: list(Address.Value.t),
+    metadata: Belt.Map.String.t(Metadata.Value.t),
   };
 
   let empty = {
@@ -39,6 +41,7 @@ module Value = {
     tags: [],
     mainAddress: None,
     addresses: [],
+    metadata: Belt.Map.String.fromArray([|("option1", Metadata.Value.empty), ("option2", Metadata.Value.empty)|]),
   };
 };
 
@@ -50,30 +53,35 @@ let lastname =
     ~getValue=values => values.Value.lastname,
     ~setValue=(value, values) => values.lastname == value ? values : {...values, lastname: value},
   );
+
 let firstname =
   Field.createField(
     ~key="firstname",
     ~getValue=values => values.Value.firstname,
     ~setValue=(value, values) => values.firstname == value ? values : {...values, firstname: value},
   );
+
 let username =
   Field.createField(
     ~key="username",
     ~getValue=values => values.Value.username,
     ~setValue=(value, values) => values.username == value ? values : {...values, username: value},
   );
+
 let age =
   Field.createField(
     ~key="age",
     ~getValue=values => values.Value.age,
     ~setValue=(value, values) => values.age == value ? values : {...values, age: value},
   );
+
 let gender =
   Field.createField(
     ~key="gender",
     ~getValue=values => values.Value.gender,
     ~setValue=(value, values) => values.gender == value ? values : {...values, gender: value},
   );
+
 let tags =
   FieldList.createField(
     ~key="tags",
@@ -98,6 +106,14 @@ let mainAddress =
     ~getObject=values => values.Value.mainAddress,
     ~setObject=(value, values) => {...values, mainAddress: value},
     ~createFields=Address.wrapOptionFields,
+  );
+
+let metadata =
+  FieldMap.createField(
+    ~key="metadata",
+    ~getMap=values => values.Value.metadata,
+    ~setMap=(value, values) => {...values, metadata: value},
+    ~createFields=Metadata.wrapFields,
   );
 
 let onValidate = form => {
@@ -165,6 +181,12 @@ let onValidate = form => {
            }
          )
        );
+
+  let form =
+    values.metadata
+    ->Belt.Map.String.toList
+    ->Belt.List.reduce(form, (form, (key, value)) => {form |> Metadata.validate(value, metadata.getFields(key))});
+
   form;
 };
 let initializeForm = () => Form.initializeForm(~initialValues=Value.empty, ~onValidate, ());
