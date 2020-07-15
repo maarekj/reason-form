@@ -3,12 +3,13 @@ module SMap = Belt.Map.String;
 type metaField('e) = {
   focus: bool,
   dirty: bool,
+  alreadyBlur: bool,
   errors: list('e),
 };
 
 type metaFields('e) = SMap.t(metaField('e));
 
-let emptyField = {focus: false, dirty: false, errors: []};
+let emptyField = {focus: false, dirty: false, alreadyBlur: false, errors: []};
 
 type form('values, 'error) = {
   fields: metaFields('error),
@@ -102,7 +103,7 @@ let focus = (key, form) =>
 let blur = (key, form) =>
   mapField(
     form,
-    field => field.focus == false && field.dirty == true ? field : {...field, focus: false, dirty: true},
+    field => field.focus == false && field.alreadyBlur === true ? field : {...field, focus: false, alreadyBlur: true},
     key,
   )
   |> form.onBlur(key);
@@ -159,6 +160,8 @@ let isBlur = (key, form) => !getField(key, form).focus;
 
 let isDirty = (key, form) => getField(key, form).dirty;
 
+let isAlreadyBlur = (key, form) => getField(key, form).alreadyBlur;
+
 let hasError = (key, form) => List.length(getField(key, form).errors) > 0;
 
 let getErrors = (key, form) => getField(key, form).errors;
@@ -168,6 +171,8 @@ let getValues = form => form.values;
 let getInitialValues = form => form.initialValues;
 
 let formIsDirty = form => SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.dirty);
+
+let formIsAlreadyBlur = form => SMap.reduce(form.fields, false, (acc, _key, field) => acc || field.alreadyBlur);
 
 let formHasRootErrors = form => List.length(form.rootErrors) > 0;
 

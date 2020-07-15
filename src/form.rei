@@ -53,6 +53,8 @@ let isBlur: (string, form('v, 'e)) => bool;
 
 let isDirty: (string, form('v, 'e)) => bool;
 
+let isAlreadyBlur: (string, form('v, 'e)) => bool;
+
 let hasError: (string, form('v, 'e)) => bool;
 
 let getErrors: (string, form('v, 'e)) => list('e);
@@ -62,6 +64,8 @@ let getValues: form('v, 'e) => 'v;
 let getInitialValues: form('v, 'e) => 'v;
 
 let formIsDirty: form('v, 'e) => bool;
+
+let formIsAlreadyBlur: form('v, 'e) => bool;
 
 let formHasRootErrors: form('v, 'e) => bool;
 
