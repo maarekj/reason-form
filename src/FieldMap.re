@@ -9,6 +9,8 @@ type t('values, 'value, 'fields) = {
   has: (string, 'values) => bool,
   remove: (string, 'values) => 'values,
   update: (StringMap.t('value) => StringMap.t('value), 'values) => 'values,
+  getMap: 'values => StringMap.t('value),
+  setMap: (StringMap.t('value), 'values) => 'values,
   getFields: string => 'fields,
 };
 
@@ -27,6 +29,8 @@ let createField =
     set: (key, value, values) => values->getMap->StringMap.set(key, value)->setMap(values),
     get: (key, values) => values->getMap->StringMap.get(key),
     has: (key, values) => values->getMap->StringMap.has(key),
+    getMap,
+    setMap,
     remove: (key, values) => values->getMap->StringMap.remove(key)->setMap(values),
     update: (updater, values) => updater(values->getMap)->setMap(values),
     getFields: mapKey => {
