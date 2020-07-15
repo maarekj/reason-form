@@ -1,202 +1,8 @@
 open Jest;
 
-module Address = {
-  type t = {
-    numero: int,
-    street: string,
-    city: string,
-  };
-  let numero =
-    Field.createField(
-      ~key="numero",
-      ~getValue=values => values.numero,
-      ~setValue=(value, values) => {...values, numero: value},
-    );
-  let street =
-    Field.createField(
-      ~key="street",
-      ~getValue=values => values.street,
-      ~setValue=(value, values) => {...values, street: value},
-    );
-  let city =
-    Field.createField(
-      ~key="city",
-      ~getValue=values => values.city,
-      ~setValue=(value, values) => {...values, city: value},
-    );
-  let empty = {numero: 0, street: "", city: ""};
-};
-
-module User = {
-  type t = {
-    username: option(string),
-    lastname: option(string),
-    firstname: option(string),
-    age: int,
-    tags: list(string),
-    mainAddress: option(Address.t),
-    addresses: list(Address.t),
-  };
-
-  type form = Form.form(t, string);
-
-  let initialUser = {
-    username: None,
-    lastname: None,
-    firstname: None,
-    age: 18,
-    tags: [],
-    mainAddress: None,
-    addresses: [],
-  };
-  let lastname =
-    Field.createField(
-      ~key="lastname",
-      ~getValue=values => values.lastname,
-      ~setValue=(value, values) => {...values, lastname: value},
-    );
-  let firstname =
-    Field.createField(
-      ~key="firstname",
-      ~getValue=values => values.firstname,
-      ~setValue=(value, values) => {...values, firstname: value},
-    );
-  let username =
-    Field.createField(
-      ~key="username",
-      ~getValue=values => values.username,
-      ~setValue=(value, values) => {...values, username: value},
-    );
-  let age =
-    Field.createField(
-      ~key="age",
-      ~getValue=values => values.age,
-      ~setValue=(value, values) => {...values, age: value},
-    );
-  let tags =
-    FieldList.createField(
-      ~key="tags",
-      ~getList=values => values.tags,
-      ~setList=(value, values) => {...values, tags: value},
-      ~createFields=
-        ({wrapField}) =>
-          wrapField(Field.createField(~key="root", ~getValue=values => values, ~setValue=(value, _) => value)),
-    );
-  type address = {
-    numero: Field.t(t, int),
-    street: Field.t(t, string),
-    city: Field.t(t, string),
-  };
-  let addresses =
-    FieldList.createField(
-      ~key="addresses",
-      ~getList=(values: t) => values.addresses,
-      ~setList=(value: list(Address.t), values: t) => {...values, addresses: value},
-      ~createFields=
-        ({wrapField}) =>
-          {numero: wrapField(Address.numero), street: wrapField(Address.street), city: wrapField(Address.city)},
-    );
-
-  let mainAddress =
-    FieldObject.createField(
-      ~key="mainAddress",
-      ~getObject=values => values.mainAddress,
-      ~setObject=(value, values) => {...values, mainAddress: value},
-      ~createFields=
-        ({wrapField}) =>
-          {
-            numero: wrapField(Field.wrapOptionField(~field=Address.numero, ~empty=Address.empty, ())),
-            street: wrapField(Field.wrapOptionField(~field=Address.street, ~empty=Address.empty, ())),
-            city: wrapField(Field.wrapOptionField(~field=Address.city, ~empty=Address.empty, ())),
-          },
-    );
-
-  let onValidate = form => {
-    let id = form => form;
-    let values = Form.getValues(form);
-    let addError = Helper.addError;
-
-    let form =
-      form
-      |> (
-        switch (values.lastname) {
-        | None
-        | Some("") => addError(`field(lastname), "Lastname is required.")
-        | _ => id
-        }
-      )
-      |> (
-        switch (values.firstname) {
-        | None
-        | Some("") => addError(`field(firstname), "Firstname is required.")
-        | _ => id
-        }
-      )
-      |> (
-        switch (values.username) {
-        | None
-        | Some("") => addError(`field(username), "Username is required.")
-        | Some("maarek") => addError(`field(username), "Username is already used.")
-        | _ => id
-        }
-      )
-      |> (
-        switch (values.age) {
-        | a when a < 18 => addError(`field(age), "You must be major.")
-        | _ => id
-        }
-      );
-
-    let form =
-      Belt.List.size(values.addresses) < 2
-        ? addError(`list(addresses), "Must contains one address at least.", form) : form;
-
-    let validateAddress = (address: Address.t, field: address, form) =>
-      form
-      |> (
-        switch (address.street) {
-        | "" => addError(`field(field.street), "Street is required.")
-        | "forbidden" => addError(`field(field.street), "Forbidden street.")
-        | _ => id
-        }
-      )
-      |> (
-        switch (address.city) {
-        | "" => addError(`field(field.city), "City is required.")
-        | "forbidden" => addError(`field(field.city), "Forbidden city.")
-        | _ => id
-        }
-      );
-
-    let form =
-      form
-      |> (
-        switch (values.mainAddress) {
-        | None => id
-        | Some(address) => validateAddress(address, mainAddress.fields)
-        }
-      );
-
-    let form =
-      Belt.List.mapWithIndex(values.addresses, (i, a) => (i, a))
-      |> Belt.List.reduce(_, form, (form, (i, address)) => form |> validateAddress(address, addresses.getRow(i)));
-
-    let form =
-      Belt.List.mapWithIndex(values.tags, (i, a) => (i, a))
-      |> Belt.List.reduce(_, form, (form, (i, tag)) =>
-           form
-           |> (
-             switch (tag) {
-             | "" => addError(`field(tags.getRow(i)), "Tag is required.")
-             | "forbidden" => addError(`field(tags.getRow(i)), "Forbidden tag.")
-             | _ => id
-             }
-           )
-         );
-    form;
-  };
-  let initializeForm = () => Form.initializeForm(~initialValues=initialUser, ~onValidate, ());
-};
+module Address = Example_address_fields;
+module Metadata = Example_metadata_fields;
+module User = Example_user_fields;
 
 let changeValue = (field: Field.t('values, 'v), value: 'v, form: Form.form('values, string)) => {
   let values = Form.getValues(form);
@@ -208,6 +14,7 @@ let testEqual = (expected, value, ()) => ExpectJs.(expect(value) |> toEqual(expe
 let testTrue = (value, ()) => ExpectJs.(expect(value) |> toBeTruthy);
 let testBe = (expected, value, ()) => ExpectJs.(expect(value) |> toBe(expected));
 let testList = (expected, value) => testEqual(expected |> Belt.List.toArray, value |> Belt.List.toArray);
+let testStringMap = (expected, value) => testEqual(expected |> Belt.List.toArray, value |> Belt.Map.String.toArray);
 let testOptionString = (expected, value, ()) =>
   ExpectJs.(expect(value |> Belt.Option.getWithDefault(_, "--None--")) |> toEqual(expected));
 
@@ -225,12 +32,14 @@ describe("#user form", () => {
     "test initial",
     [
       ("form is not dirty", testEqual(false, Form.formIsDirty(form))),
+      ("form is not already blur", testEqual(false, Form.formIsAlreadyBlur(form))),
       ("form has not root errors", testEqual(false, Form.formHasRootErrors(form))),
       ("form has errors", testEqual(true, Form.formHasErrors(form))),
       ("form has not submit errors", testEqual(false, Form.formHasSubmitErrors(form))),
       ("lastname focus", testEqual(false, Helper.hasFocus(`field(User.lastname), form))),
       ("lastname blur", testEqual(true, Helper.isBlur(`field(User.lastname), form))),
       ("lastname dirty", testEqual(false, Helper.isDirty(`field(User.lastname), form))),
+      ("lastname already blur", testEqual(false, Helper.isAlreadyBlur(`field(User.lastname), form))),
       ("lastname has error", testEqual(true, Helper.hasError(`field(User.lastname), form))),
       ("lastname get errors", testList(["Lastname is required."], Helper.getErrors(`field(User.lastname), form))),
       ("lastname value", testOptionString("--None--", Form.getValues(form).lastname)),
@@ -246,22 +55,71 @@ describe("#user form", () => {
       ("username focus", testEqual(false, Helper.hasFocus(`field(User.username), form))),
       ("username blur", testEqual(true, Helper.isBlur(`field(User.username), form))),
       ("username dirty", testEqual(false, Helper.isDirty(`field(User.username), form))),
+      ("username already blur", testEqual(false, Helper.isAlreadyBlur(`field(User.username), form))),
       ("username has error", testEqual(true, Helper.hasError(`field(User.username), form))),
       ("username get errors", testList(["Username is required."], Helper.getErrors(`field(User.username), form))),
       ("username value", testOptionString("--None--", Form.getValues(form).username)),
       ("age focus", testEqual(false, Helper.hasFocus(`field(User.age), form))),
       ("age blur", testEqual(true, Helper.isBlur(`field(User.age), form))),
       ("age dirty", testEqual(false, Helper.isDirty(`field(User.age), form))),
+      ("age already blur", testEqual(false, Helper.isAlreadyBlur(`field(User.age), form))),
       ("age has error", testEqual(false, Helper.hasError(`field(User.age), form))),
       ("age get errors", testList([], Helper.getErrors(`field(User.age), form))),
       ("age value", testEqual(18, Form.getValues(form).age)),
       ("tags focus", testEqual(false, Helper.hasFocus(`list(User.tags), form))),
       ("tags blur", testEqual(true, Helper.isBlur(`list(User.tags), form))),
       ("tags dirty", testEqual(false, Helper.isDirty(`list(User.tags), form))),
+      ("tags already blur", testEqual(false, Helper.isAlreadyBlur(`list(User.tags), form))),
       ("tags has error", testEqual(false, Helper.hasError(`list(User.tags), form))),
       ("tags get errors", testList([], Helper.getErrors(`list(User.tags), form))),
       ("tags values", testList([], Form.getValues(form).tags)),
       ("tags count", testEqual(0, User.tags.count(Form.getValues(form)))),
+      ("addresses focus", testEqual(false, Helper.hasFocus(`list(User.addresses), form))),
+      ("addresses blur", testEqual(true, Helper.isBlur(`list(User.addresses), form))),
+      ("addresses dirty", testEqual(false, Helper.isDirty(`list(User.addresses), form))),
+      ("addresses already blur", testEqual(false, Helper.isAlreadyBlur(`list(User.addresses), form))),
+      ("addresses count", testEqual(0, User.addresses.count(Form.getValues(form)))),
+      ("addresses values", testList([], Form.getValues(form).addresses)),
+      (
+        "addresses get errors",
+        testList(["Must contains one address at least."], Helper.getErrors(`list(User.addresses), form)),
+      ),
+      ("metadata focus", testEqual(false, Helper.hasFocus(`map(User.metadata), form))),
+      ("metadata blur", testEqual(true, Helper.isBlur(`map(User.metadata), form))),
+      ("metadata dirty", testEqual(false, Helper.isDirty(`map(User.metadata), form))),
+      ("metadata already blur", testEqual(false, Helper.isAlreadyBlur(`map(User.metadata), form))),
+      ("metadata count keys", testEqual(2, User.metadata.countKeys(Form.getValues(form)))),
+      ("metadata all keys", testList(["option1", "option2"], User.metadata.allKeys(Form.getValues(form)))),
+      (
+        "metadata values",
+        testStringMap(
+          [("option1", Metadata.Value.empty), ("option2", Metadata.Value.empty)],
+          Form.getValues(form).metadata,
+        ),
+      ),
+      ("metadata get errors", testList([], Helper.getErrors(`map(User.metadata), form))),
+      (
+        "metadata.option1.title get errors",
+        testList(
+          ["Title is required."],
+          Helper.getErrors(`field(User.metadata.getFields("option1").title), form),
+        ),
+      ),
+      (
+        "metadata.option1.desc get errors",
+        testList([], Helper.getErrors(`field(User.metadata.getFields("option1").desc), form)),
+      ),
+      (
+        "metadata.option2.title get errors",
+        testList(
+          ["Title is required."],
+          Helper.getErrors(`field(User.metadata.getFields("option2").title), form),
+        ),
+      ),
+      (
+        "metadata.option2.desc get errors",
+        testList([], Helper.getErrors(`field(User.metadata.getFields("option2").desc), form)),
+      ),
     ],
   );
 
@@ -286,34 +144,52 @@ describe("#user form", () => {
   let form = form |> Form.changeValues([User.tags.key], User.tags.insert(0, "tag0", Form.getValues(form)));
   let form = form |> Form.changeValues([User.tags.key], User.tags.insert(4, "tag4", Form.getValues(form)));
 
+  let form =
+    form
+    |> Form.changeValues(
+         [User.addresses.key],
+         User.addresses.push({Address.Value.city: "Choisy le roi", street: "6 rue bascou"}, Form.getValues(form)),
+       );
+
+  let form =
+    form
+    |> changeValue(User.metadata.getFields("option1").title, "Option1 Title")
+    |> changeValue(User.metadata.getFields("option1").desc, "Option1 Description")
+    |> changeValue(User.metadata.getFields("option2").title, "Option2 Title");
+
   testMany(
     "test after changes",
     [
       ("form is dirty", testEqual(true, Form.formIsDirty(form))),
+      ("form is already blur", testEqual(true, Form.formIsAlreadyBlur(form))),
       ("form has not root errors", testEqual(false, Form.formHasRootErrors(form))),
-      ("form has errors", testEqual(true, Form.formHasErrors(form))),
+      ("form has errors", testEqual(false, Form.formHasErrors(form))),
       ("form has not submit errors", testEqual(false, Form.formHasSubmitErrors(form))),
       ("lastname focus", testEqual(false, Helper.hasFocus(`field(User.lastname), form))),
       ("lastname blur", testEqual(true, Helper.isBlur(`field(User.lastname), form))),
       ("lastname dirty", testEqual(true, Helper.isDirty(`field(User.lastname), form))),
+      ("lastname already blur", testEqual(true, Helper.isAlreadyBlur(`field(User.lastname), form))),
       ("lastname has error", testEqual(false, Helper.hasError(`field(User.lastname), form))),
       ("lastname get errors", testList([], Helper.getErrors(`field(User.lastname), form))),
       ("new value of lastname", testOptionString("Maarek", Form.getValues(form).lastname)),
       ("firstname focus", testEqual(false, Helper.hasFocus(`field(User.firstname), form))),
       ("firstname blur", testEqual(true, Helper.isBlur(`field(User.firstname), form))),
       ("firstname dirty", testEqual(true, Helper.isDirty(`field(User.firstname), form))),
+      ("firstname already blur", testEqual(true, Helper.isAlreadyBlur(`field(User.firstname), form))),
       ("firstname has error", testEqual(false, Helper.hasError(`field(User.firstname), form))),
       ("firstname get errors", testList([], Helper.getErrors(`field(User.firstname), form))),
       ("new value of firstname", testOptionString("Joseph", Form.getValues(form).firstname)),
       ("username focus", testEqual(false, Helper.hasFocus(`field(User.username), form))),
       ("username blur", testEqual(true, Helper.isBlur(`field(User.username), form))),
       ("username dirty", testEqual(true, Helper.isDirty(`field(User.username), form))),
+      ("username already blur", testEqual(true, Helper.isAlreadyBlur(`field(User.username), form))),
       ("username has error", testEqual(false, Helper.hasError(`field(User.username), form))),
       ("username get errors", testList([], Helper.getErrors(`field(User.username), form))),
       ("new value of username", testOptionString("maarekj", Form.getValues(form).username)),
       ("age focus", testEqual(false, Helper.hasFocus(`field(User.age), form))),
       ("age blur", testEqual(true, Helper.isBlur(`field(User.age), form))),
       ("age dirty", testEqual(true, Helper.isDirty(`field(User.age), form))),
+      ("age already blur", testEqual(true, Helper.isAlreadyBlur(`field(User.age), form))),
       ("age has error", testEqual(false, Helper.hasError(`field(User.age), form))),
       ("age get errors", testList([], Helper.getErrors(`field(User.age), form))),
       ("new value of age", testEqual(28, Form.getValues(form).age)),
