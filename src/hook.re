@@ -70,6 +70,21 @@ let useValue = (wrap, field: Field.t('values, 'value)) => {
   useListener(wrap, createState);
 };
 
+let useMapValues = (wrap, field: FieldMap.t(_, _, _)) => {
+  let createState = React.useCallback1(form => field.getMap(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
+};
+
+let useListValues = (wrap, field: FieldList.t(_, _, _)) => {
+  let createState = React.useCallback1(form => field.getList(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
+};
+
+let useObjValues = (wrap, field: FieldObject.t(_, _, _)) => {
+  let createState = React.useCallback1(form => field.getObject(Form.getValues(form)), [|field|]);
+  useListener(wrap, createState);
+};
+
 let useListCount = (wrap, field) => {
   let createState = React.useCallback1(form => field.FieldList.count(Form.getValues(form)), [|field|]);
   useListener(wrap, createState);
