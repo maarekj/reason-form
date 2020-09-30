@@ -4,15 +4,13 @@ module Address = Example_address_fields;
 module AddressForm = Example_address_form;
 module MetadataForm = Example_metadata_form;
 
-let initialForm = Example_user_fields.initializeForm();
-
 let toText = a => a->Belt.Option.getWithDefault("");
 let fromText = a => Some(a);
 
 module GenderRow = {
   [@react.component]
-  let make = (~wrap, ~expanded) => {
-    let value = Hook.useValue(wrap, Fields.gender);
+  let make = (~wrap, ~field: Field.t(_, option(Fields.Gender.t)), ~expanded) => {
+    let value = Hook.useValue(wrap, field);
 
     React.useMemo3(
       () => {
@@ -27,10 +25,10 @@ module GenderRow = {
         <Render.Row
           label={js|Gender|js}
           wrap
-          field=Fields.gender
+          field
           input={
             <div className="input-group mb-3">
-              <Render.Choice wrap expanded field=Fields.gender choices=Fields.Gender.optChoices />
+              <Render.Choice wrap expanded field choices=Fields.Gender.optChoices />
               <div className="input-group-append"> icon </div>
             </div>
           }
@@ -44,7 +42,7 @@ module GenderRow = {
 [@react.component]
 let make = () => {
   let (expanded, setExpanded) = React.useState(() => false);
-  let wrap = React.useMemo0(() => Wrap.make(initialForm));
+  let (wrap, fields) = Fields.useForm(Fields.Value.empty);
 
   let {Hook.isSubmitting} = Hook.useFormMeta(wrap);
 
@@ -75,36 +73,36 @@ let make = () => {
                 <Render.Row
                   label={js|Username|js}
                   wrap
-                  field=Fields.username
-                  input={<Render.Input wrap type_="text" field=Fields.username toText fromText />}
+                  field={fields.username}
+                  input={<Render.Input wrap type_="text" field={fields.username} toText fromText />}
                 />
                 <div className="row">
                   <div className="col-sm-6">
                     <Render.Row
                       label={js|Lastname|js}
                       wrap
-                      field=Fields.lastname
-                      input={<Render.Input wrap type_="text" field=Fields.lastname toText fromText />}
+                      field={fields.lastname}
+                      input={<Render.Input wrap type_="text" field={fields.lastname} toText fromText />}
                     />
                   </div>
                   <div className="col-sm-6">
                     <Render.Row
                       label={js|Firstname|js}
                       wrap
-                      field=Fields.firstname
-                      input={<Render.Input wrap type_="text" field=Fields.firstname toText fromText />}
+                      field={fields.firstname}
+                      input={<Render.Input wrap type_="text" field={fields.firstname} toText fromText />}
                     />
                   </div>
                 </div>
-                <GenderRow wrap expanded />
+                <GenderRow wrap expanded field={fields.gender} />
                 <Render.Row
                   label={js|Age|js}
                   wrap
-                  field=Fields.age
+                  field={fields.age}
                   input={
                     <Render.Input
                       wrap
-                      field=Fields.age
+                      field={fields.age}
                       type_="text"
                       toText=string_of_int
                       fromText={v =>
@@ -115,46 +113,49 @@ let make = () => {
                     />
                   }
                 />
-                <Render.Map
+                <Render.StringMap
                   wrap
-                  field=Fields.metadata
+                  field={fields.metadata->fst}
                   label={js|Méta-données|js}
-                  renderInput={(fields, key) => <MetadataForm wrap fields title=key />}
+                  renderInput={key => <MetadataForm wrap fields={fields.metadata->snd(key)} title=key />}
                 />
                 <Render.List
                   wrap
-                  field=Fields.tags
+                  field={fields.tags->fst}
                   label={js|Tags|js}
-                  onAdd={() => wrap->Wrap.dispatch(Helper.List.push(Fields.tags, ""))}
-                  onRemove={i => wrap->Wrap.dispatch(Helper.List.remove(Fields.tags, i))}
-                  renderInput={(row, index) =>
+                  onAdd={() => wrap->Wrap.dispatch(Helper.List.push(fields.tags->fst, ""))}
+                  onRemove={i => wrap->Wrap.dispatch(Helper.List.remove(fields.tags->fst, i))}
+                  renderInput={index => {
+                    let field = fields.tags->snd(index);
                     <Render.Row
                       wrap
-                      field=row
+                      field
                       label={j|Tag $(index)|j}
-                      input={<Render.Input wrap toText={v => v} fromText={v => v} field=row />}
-                    />
-                  }
+                      input={<Render.Input wrap toText={v => v} fromText={v => v} field />}
+                    />;
+                  }}
                 />
-                <Render.ObjectRow
+                <Render.Row
                   wrap
-                  field=Fields.mainAddress
+                  field={fields.mainAddress.self}
                   label={js||js}
-                  input={<AddressForm wrap title={js|Main Address|js} fields={Fields.mainAddress.fields} />}
+                  input={<AddressForm wrap title={js|Main Address|js} fields={fields.mainAddress} />}
                 />
                 <Render.List
                   wrap
-                  field=Fields.addresses
+                  field={fields.addresses->fst}
                   label={js|Addresses|js}
-                  onAdd={() => wrap->Wrap.dispatch(Helper.List.push(Fields.addresses, Address.Value.empty))}
-                  onRemove={i => wrap->Wrap.dispatch(Helper.List.remove(Fields.addresses, i))}
-                  renderInput={(row, index) => <AddressForm wrap title={j|Address $(index)|j} fields=row />}
+                  onAdd={() => wrap->Wrap.dispatch(Helper.List.push(fields.addresses->fst, Address.Value.empty))}
+                  onRemove={i => wrap->Wrap.dispatch(Helper.List.remove(fields.addresses->fst, i))}
+                  renderInput={index =>
+                    <AddressForm wrap title={j|Address $(index)|j} fields={fields.addresses->snd(index)} />
+                  }
                 />
                 <Render.FormErrors wrap />
               </div>
               <div className="card-footer">
                 <Render.SubmitButton wrap text="Submit" submittingText="Submitting..." />
-                <Render.ResetButton wrap initialForm text="Reset" />
+                <Render.ResetButton wrap initialForm={wrap.initial} text="Reset" />
                 <button
                   className="btn btn-xs btn-default"
                   onClick={event => {

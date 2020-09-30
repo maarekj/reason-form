@@ -3,22 +3,6 @@ let normalizeId = id => {
   id |> Js.String.replaceByRe(reg, "-");
 };
 
-let useFieldField = field => {
-  React.useMemo1(() => `field(field), [|field|]);
-};
-
-let useObjField = field => {
-  React.useMemo1(() => `obj(field), [|field|]);
-};
-
-let useListField = field => {
-  React.useMemo1(() => `list(field), [|field|]);
-};
-
-let useMapField = field => {
-  React.useMemo1(() => `map(field), [|field|]);
-};
-
 module FieldErrors = {
   module Pure = {
     [@react.component]
@@ -80,7 +64,7 @@ module Input = {
           ~onChange,
           ~id=?,
         ) => {
-        Js.log("render input");
+        Js.log("render input (#" ++ id->Belt.Option.getWithDefault("") ++ ")");
 
         <input
           type_
@@ -97,12 +81,11 @@ module Input = {
   [@react.component]
   let make = (~wrap, ~type_=?, ~id=?, ~className=?, ~toText, ~fromText, ~field) => {
     let value = Hook.useValue(wrap, field);
-    let fieldField = useFieldField(field);
     let {Hook.nbSubmits} = Hook.useFormMeta(wrap);
-    let {Hook.isAlreadyBlur, hasError, key} = Hook.useMeta(wrap, fieldField);
+    let {Hook.isAlreadyBlur, hasError, key} = Hook.useMeta(wrap, field);
 
-    let onFocus = React.useCallback2(_event => wrap->Wrap.dispatch(Helper.focus(fieldField)), (wrap, fieldField));
-    let onBlur = React.useCallback2(_event => wrap->Wrap.dispatch(Helper.blur(fieldField)), (wrap, fieldField));
+    let onFocus = React.useCallback2(_event => wrap->Wrap.dispatch(Form.focus(key)), (wrap, key));
+    let onBlur = React.useCallback2(_event => wrap->Wrap.dispatch(Form.blur(key)), (wrap, key));
 
     let onChange =
       React.useCallback3(
@@ -158,7 +141,7 @@ module Choice = {
           ~onChangeWithString,
           ~choices,
         ) => {
-        Js.log("render choice");
+        Js.log("render choice (#" ++ id ++ ")");
 
         switch (expanded) {
         | false =>
@@ -204,9 +187,8 @@ module Choice = {
   [@react.component]
   let make = (~wrap, ~expanded=false, ~className=?, ~id=?, ~choices, ~field) => {
     let value = Hook.useValue(wrap, field);
-    let fieldField = useFieldField(field);
     let {Hook.nbSubmits} = Hook.useFormMeta(wrap);
-    let {Hook.isAlreadyBlur, hasError} = Hook.useMeta(wrap, fieldField);
+    let {Hook.isAlreadyBlur, hasError} = Hook.useMeta(wrap, field);
 
     let toString =
       React.useCallback1(
@@ -232,8 +214,9 @@ module Choice = {
         [|choices|],
       );
 
-    let onFocus = React.useCallback2(_event => wrap->Wrap.dispatch(Helper.focus(fieldField)), (wrap, fieldField));
-    let onBlur = React.useCallback2(_event => wrap->Wrap.dispatch(Helper.blur(fieldField)), (wrap, fieldField));
+    let key = field.key;
+    let onFocus = React.useCallback2(_event => wrap->Wrap.dispatch(Form.focus(key)), (wrap, key));
+    let onBlur = React.useCallback2(_event => wrap->Wrap.dispatch(Form.blur(key)), (wrap, key));
 
     let setValue =
       React.useCallback1(
@@ -303,9 +286,9 @@ module Choice = {
 
 module Row = {
   [@react.component]
-  let make = (~label, ~labelFor=?, ~className="form-group", ~input, ~wrap, ~field) => {
-    let fieldField = useFieldField(field);
-    let {Hook.key} = Hook.useMeta(wrap, fieldField);
+  let make = (~label, ~labelFor=?, ~className="form-group", ~input, ~wrap, ~field: Field.t(_, _)) => {
+    let key = field.key;
+
     let labelFor =
       switch (labelFor) {
       | Some(id) => id
@@ -317,16 +300,8 @@ module Row = {
     <div className>
       <label htmlFor=labelFor> {ReasonReact.string(label)} </label>
       input
-      <FieldErrors wrap field=fieldField />
+      <FieldErrors wrap field />
     </div>;
-  };
-};
-
-module ObjectRow = {
-  [@react.component]
-  let make = (~label, ~className="form-group", ~input, ~wrap, ~field) => {
-    let objField = useObjField(field);
-    <div className> <label> {ReasonReact.string(label)} </label> input <FieldErrors wrap field=objField /> </div>;
   };
 };
 
@@ -370,39 +345,34 @@ module List = {
 
   [@react.component]
   let make = (~wrap, ~onAdd, ~onRemove, ~label, ~renderInput, ~field) => {
-    let listField = useListField(field);
     let count = Hook.useListCount(wrap, field);
     let rows = React.useMemo1(() => Belt.List.makeByU(count, (. i) => i), [|count|]);
-    let renderInput = React.useCallback1(i => renderInput(field.getRow(i), i), [|field|]);
 
-    let fieldErrors = React.useMemo2(() => <FieldErrors wrap field=listField />, (wrap, listField));
+    let fieldErrors = React.useMemo2(() => <FieldErrors wrap field />, (wrap, field));
 
     <Pure rows onAdd onRemove label renderInput fieldErrors />;
   };
 };
 
-module Map = {
+module StringMap = {
   module Pure = {
     [@react.component]
     let make =
       React.memo((~allKeys, ~fieldErrors, ~renderInput, ~label) => {
         <div className="form-group">
           <label> {ReasonReact.string(label)} </label>
-          <div>
-            {allKeys->Belt.List.map(key => <div key> {renderInput(key)} </div>)->Belt.List.toArray->ReasonReact.array}
-          </div>
+          <div> {allKeys->Belt.Array.map(key => <div key> {renderInput(key)} </div>)->ReasonReact.array} </div>
           fieldErrors
         </div>
       });
   };
 
   [@react.component]
-  let make = (~wrap, ~label, ~renderInput, ~field) => {
-    let mapField = useMapField(field);
-    let allKeys = Hook.useMapAllKeys(wrap, field);
-    let renderInput = React.useCallback1(key => renderInput(field.getFields(key), key), [|field|]);
+  let make = (~wrap, ~label, ~renderInput, ~field: Field.t(_, _)) => {
+    let allKeys = Hook.useStringMapAllKeys(wrap, field);
+    let fieldErrors = React.useMemo2(() => <FieldErrors wrap field />, (wrap, field));
 
-    let fieldErrors = React.useMemo2(() => <FieldErrors wrap field=mapField />, (wrap, mapField));
+    let renderInput = React.useMemo0(() => renderInput);
 
     <Pure allKeys fieldErrors renderInput label />;
   };
@@ -453,7 +423,7 @@ module Form = {
             onSubmit(form)
             |> Js.Promise.then_(value =>
                  switch (value) {
-                 | Belt.Result.Ok(_) =>
+                 | Ok(_) =>
                    wrap->Wrap.dispatch(Form.submitSuccess);
                    wrap->Wrap.dispatch(Form.stopSubmit);
                    Js.Promise.resolve();

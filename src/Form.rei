@@ -3,6 +3,7 @@ type metaField('e);
 type metaFields('e);
 
 type form('v, 'e);
+type t('values, 'error) = form('values, 'error);
 
 let initializeForm:
   (

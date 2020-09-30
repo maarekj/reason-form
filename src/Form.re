@@ -26,6 +26,8 @@ type form('values, 'error) = {
   values: 'values,
 };
 
+type t('values, 'error) = form('values, 'error);
+
 module Eq = {
   let metaField = (a: metaField('e), b: metaField('e)) =>
     a === b || a.focus == b.focus && a.dirty == b.dirty && a.errors == b.errors;

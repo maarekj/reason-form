@@ -7,49 +7,38 @@ module Value = {
   let empty: t = {title: "", desc: ""};
 };
 
-let title =
-  Field.createField(
-    ~key="title",
-    ~getValue=values => values.Value.title,
-    ~setValue=(value, values) => {...values, title: value},
-  );
-
-let desc =
-  Field.createField(
-    ~key="desc",
-    ~getValue=values => values.Value.desc,
-    ~setValue=(value, values) => {...values, desc: value},
-  );
-
-type fields('values) = {
-  title: Field.t('values, string),
-  desc: Field.t('values, string),
+type fields('t, 'self) = {
+  self: Field.t('t, 'self),
+  title: Field.t('t, string),
+  desc: Field.t('t, string),
 };
 
-module Fields = (T: {type t;}) => {
-  type t = fields(T.t);
-};
+let createFields = (self, baseField) =>
+  Field.{
+    self,
+    title:
+      baseField
+      +|> createField(~key="title", ~getValue=(v: Value.t) => v.title, ~setValue=(title, v) => {...v, title}),
+    desc:
+      baseField +|> createField(~key="desc", ~getValue=(v: Value.t) => v.desc, ~setValue=(desc, v) => {...v, desc}),
+  };
 
-let wrapFields = ({Field.wrapField}) => {title: wrapField(title), desc: wrapField(desc)};
-let wrapOptionFields = ({Field.wrapField}) => {
-  title: wrapField(Field.wrapOptionField(~field=title, ~empty=Value.empty, ())),
-  desc: wrapField(Field.wrapOptionField(~field=desc, ~empty=Value.empty, ())),
-};
+let validate = (fields: fields(_, Value.t), form) => {
+  let metadata = form->Form.getValues->(fields.self.getValue);
 
-let validate = (metadata: Value.t, field: fields(_), form) => {
-  let addError = Helper.addError;
+  let addError = f => Form.addError(f.Field.key);
   let id = form => form;
   form
   |> (
     switch (metadata.title) {
-    | "" => addError(`field(field.title), "Title is required.")
-    | "forbidden" => addError(`field(field.title), "Forbidden title.")
+    | "" => addError(fields.title, "Title is required.")
+    | "forbidden" => addError(fields.title, "Forbidden title.")
     | _ => id
     }
   )
   |> (
     switch (metadata.desc) {
-    | "forbidden" => addError(`field(field.desc), "Forbidden desc.")
+    | "forbidden" => addError(fields.desc, "Forbidden desc.")
     | _ => id
     }
   );
