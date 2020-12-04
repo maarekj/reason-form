@@ -6,8 +6,8 @@
   "description": "Yet form librairie for reason and react",
   "main": "index.js",
   "scripts": {
-    "test": "jest lib/js",
-    "test:watch": "jest lib/js/src/__tests__ --watchAll",
+    "test": "jest src/__tests__",
+    "test:watch": "jest src/__tests__ --watchAll",
     "start:reason": "bsb -make-world -w",
     "start:webpack": "webpack -w",
     "start": "yarn run build && concurrently --kill-others --names \"Reason,Webpack\" \"yarn run start:reason\" \"yarn run start:webpack\"",
