@@ -1,8 +1,29 @@
-type metaField('e);
+type metaField('e) = {
+  focus: bool,
+  dirty: bool,
+  alreadyBlur: bool,
+  errors: list('e),
+};
 
-type metaFields('e);
+type metaFields('e) = Belt.Map.String.t(metaField('e));
 
-type form('v, 'e);
+type form('values, 'error) = {
+  fields: metaFields('error),
+  rootErrors: list('error),
+  submitErrors: list('error),
+  submitSuccess: bool,
+  onValidate: form('values, 'error) => form('values, 'error),
+  onBlur: (string, form('values, 'error)) => form('values, 'error),
+  onFocus: (string, form('values, 'error)) => form('values, 'error),
+  onChangeValue:
+    (~keys: list(string), ~oldForm: form('values, 'error), ~newForm: form('values, 'error)) =>
+    form('values, 'error),
+  submitting: bool,
+  nbSubmits: int,
+  initialValues: 'values,
+  values: 'values,
+};
+
 type t('values, 'error) = form('values, 'error);
 
 let initializeForm:
