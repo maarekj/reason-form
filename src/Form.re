@@ -19,7 +19,9 @@ type form('values, 'error) = {
   onValidate: form('values, 'error) => form('values, 'error),
   onBlur: (string, form('values, 'error)) => form('values, 'error),
   onFocus: (string, form('values, 'error)) => form('values, 'error),
-  onChangeValue: (list(string), form('values, 'error)) => form('values, 'error),
+  onChangeValue:
+    (~keys: list(string), ~oldForm: form('values, 'error), ~newForm: form('values, 'error)) =>
+    form('values, 'error),
   submitting: bool,
   nbSubmits: int,
   initialValues: 'values,
@@ -61,7 +63,7 @@ let initializeForm =
       ~submitErrors=[],
       ~onBlur=(_key, form) => form,
       ~onFocus=(_key, form) => form,
-      ~onChangeValue=(_fields, form) => form,
+      ~onChangeValue=(~keys as _, ~oldForm as _, ~newForm) => newForm,
       ~onValidate=form => form,
       (),
     ) => {
@@ -144,13 +146,14 @@ let clearAllFieldsErrors = form =>
   );
 
 let changeValues = (keys, values, form) => {
+  let oldForm = form;
   let form = {...form, values};
   List.fold_left(
     (form, key) => mapField(form, field => field.dirty == true ? field : {...field, dirty: true}, key),
     form,
     keys,
   )
-  |> form.onChangeValue(keys)
+  |> form.onChangeValue(~keys, ~oldForm, ~newForm=_)
   |> clearRootErrors
   |> clearAllFieldsErrors
   |> form.onValidate;

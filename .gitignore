@@ -5,3 +5,4 @@ yarn-error.log
 /node_modules
 /public/build/
 /lib/
+/src/**/*.bs.js

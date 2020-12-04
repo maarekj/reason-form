@@ -12,7 +12,7 @@ let initializeForm:
     ~submitErrors: list('e)=?,
     ~onBlur: (string, form('v, 'e)) => form('v, 'e)=?,
     ~onFocus: (string, form('v, 'e)) => form('v, 'e)=?,
-    ~onChangeValue: (list(string), form('v, 'e)) => form('v, 'e)=?,
+    ~onChangeValue: (~keys: list(string), ~oldForm: form('v, 'e), ~newForm: form('v, 'e)) => form('v, 'e)=?,
     ~onValidate: form('v, 'e) => form('v, 'e)=?,
     unit
   ) =>
