@@ -8,14 +8,14 @@
   "scripts": {
     "test": "jest src/__tests__",
     "test:watch": "jest src/__tests__ --watchAll",
-    "start:reason": "bsb -make-world -w",
+    "start:reason": "rescript build -w",
     "start:webpack": "webpack -w",
     "start": "yarn run build && concurrently --kill-others --names \"Reason,Webpack\" \"yarn run start:reason\" \"yarn run start:webpack\"",
-    "build:reason": "bsb -make-world",
+    "build:reason": "rescript build",
     "build:webpack": "webpack",
     "build": "yarn run build:reason && yarn run build:webpack",
-    "clean": "bsb -clean-world && rm -Rfv build/* public/build/*",
-    "refmt": "bsrefmt -w 120 --in-place $(find src -name '*.re') $(find src -name '*.rei')",
+    "clean": "rescript clean -with-deps && rm -Rfv build/* public/build/*",
+    "refmt": "rescript format -all",
     "prepare": "install-self-peers -- --ignore-scripts"
   },
   "keywords": [
@@ -23,6 +23,7 @@
     "react",
     "form",
     "bs-platform",
+    "rescript",
     "bucklescript"
   ],
   "author": "Joseph Maarek <josephmaarek@gmail.com>",
@@ -34,19 +35,19 @@
     ]
   },
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.4.8",
+    "@glennsl/bs-jest": "^0.7.0",
     "@team-griffin/install-self-peers": "^1.1.1",
     "babel-cli": "^6.26.0",
-    "babel-loader": "^8.1.0",
+    "babel-loader": "^8.2.2",
     "babel-preset-env": "^1.7.0",
-    "bs-platform": "^8.0.3",
-    "concurrently": "^5.2.0",
+    "concurrently": "^6.2.0",
+    "rescript": "^9.1.2",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
   },
   "peerDependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "reason-react": "^0.7.0"
+    "@rescript/react": "^0.10.3",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
   }
 }

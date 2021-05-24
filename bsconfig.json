@@ -11,7 +11,7 @@
     "in-source": true
   },
   "bs-dependencies": [
-    "reason-react"
+    "@rescript/react"
   ],
   "bs-dev-dependencies": [
     "@glennsl/bs-jest"
